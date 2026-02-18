@@ -1,0 +1,870 @@
+/* Global Styles & Variables */
+:root {
+    --primary-color: #ff4757; /* Modern Red */
+    --secondary-color: #2c3e50; /* Dark Blue Gray */
+    --accent-color: #5f27cd; /* Purple */
+    --success-color: #00d2d3; /* Cyan */
+    --background-color: #f8f9fa; /* Light Gray */
+    --text-color: #2d3436;
+    --text-light: #636e72;
+    --white: #ffffff;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+    --primary-color: #ff6b81;
+    --secondary-color: #dfe6e9;
+    --accent-color: #a29bfe;
+    --background-color: #1e272e;
+    --text-color: #f1f2f6;
+    --text-light: #a4b0be;
+    --white: #2f3640;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    transition: var(--transition);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    /* Typography adjustments */
+    .hero h1 {
+        font-size: 2.2rem;
+        line-height: 1.3;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+    }
+
+    #search h2 {
+        font-size: 1.8rem;
+    }
+
+    /* Navigation */
+    nav {
+        padding: 1rem 4%;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        font-size: 1.4rem;
+    }
+
+    .nav-links {
+        gap: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .nav-links li a {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    /* Hero section */
+    .hero {
+        padding: 4rem 0;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .hero-buttons a {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Stats section */
+    [style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1.5rem !important;
+    }
+
+    /* Top donors grid */
+    .top-donors-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem;
+        padding: 0 1rem;
+    }
+
+    /* Search filter */
+    .search-filter {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.2rem;
+    }
+
+    .search-filter select,
+    .search-filter input {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    .search-filter button {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    /* Donor cards */
+    .donor-card {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .donor-card h4 {
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .donor-card > div:last-child {
+        width: 100%;
+    }
+
+    .donor-card a {
+        width: 100%;
+        display: block;
+    }
+
+    /* Sections padding */
+    section {
+        padding: 2rem 0 !important;
+    }
+
+    .container {
+        padding: 0 4%;
+    }
+
+    /* Buttons */
+    .btn-primary, .btn-secondary {
+        padding: 1rem 1.5rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+    }
+
+    #search h2 {
+        font-size: 1.5rem;
+    }
+
+    /* Stats font size */
+    [style*="font-size: 3rem"] {
+        font-size: 2rem !important;
+    }
+
+    /* Top donor cards */
+    .top-donor-card {
+        padding: 1.5rem;
+    }
+
+    .donor-rank {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+    .donor-rank.rank-1 {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+
+    .donor-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific */
+    body {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    input, select, textarea {
+        font-size: 16px !important; /* Prevents zoom on focus */
+    }
+
+    .btn-primary, .btn-secondary {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+}
+
+/* Android specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    select {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23333" d="M6 9L1 4h10z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 2.5rem;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .nav-links li a {
+        padding: 0.7rem 1rem;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-primary, .btn-secondary {
+        min-height: 48px;
+        padding: 1rem 2rem;
+    }
+
+    .search-filter button {
+        min-height: 52px;
+    }
+
+    /* Remove hover effects on touch */
+    .donor-card:hover {
+        transform: none;
+    }
+
+    /* Tap highlight */
+    * {
+        -webkit-tap-highlight-color: rgba(255, 71, 87, 0.2);
+    }
+
+    /* Smooth scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+/* Landscape mode mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero {
+        padding: 3rem 0;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    header, .hero-buttons, .search-filter, footer {
+        display: none;
+    }
+
+    .donor-card {
+        break-inside: avoid;
+    }
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 5%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-links li a {
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    position: relative;
+}
+
+.nav-links li a:hover {
+    color: var(--primary-color);
+    background-color: rgba(255, 71, 87, 0.1);
+}
+
+.nav-links li a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transition: var(--transition);
+    transform: translateX(-50%);
+}
+
+.nav-links li a:hover::after {
+    width: 60%;
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6rem 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    opacity: 0.3;
+}
+
+.hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+    letter-spacing: -1px;
+}
+
+.hero p {
+    font-size: 1.3rem;
+    margin-bottom: 2.5rem;
+    opacity: 0.95;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: 400;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Container */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 5%;
+}
+
+/* Top Donors Section */
+.top-donors-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 3rem 0;
+    margin: 2rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.top-donors-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 L90 50 L50 90 L10 50 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+    opacity: 0.3;
+}
+
+.top-donors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.top-donor-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: floatIn 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+.top-donor-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.top-donor-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.top-donor-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes floatIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.top-donor-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.top-donor-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #e63946, #f77f00);
+}
+
+.donor-rank {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #333;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border: 3px solid white;
+}
+
+.donor-rank.rank-1 {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+}
+
+.donor-rank.rank-2 {
+    background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+}
+
+.donor-rank.rank-3 {
+    background: linear-gradient(135deg, #cd7f32, #e6a96a);
+}
+
+.donor-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0 auto 1rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.donor-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.donor-blood-group {
+    display: inline-block;
+    background: var(--primary-color);
+    color: white;
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.donor-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.3rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.donor-location {
+    text-align: center;
+    color: #666;
+    font-size: 0.95rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Buttons */
+.btn-primary, .btn-secondary {
+    padding: 0.9rem 2rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.3px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #ff6b81);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 71, 87, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: white;
+    color: var(--primary-color);
+    border: 2px solid white;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 255, 255, 0.4);
+}
+
+/* Search Section */
+#search {
+    padding: 4rem 0;
+    background: white;
+}
+
+#search h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 3rem;
+    color: var(--secondary-color);
+    letter-spacing: -0.5px;
+}
+
+.search-filter {
+    display: flex;
+    gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto 3rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    flex-wrap: wrap;
+}
+
+.search-filter select,
+.search-filter input {
+    flex: 1;
+    min-width: 200px;
+    padding: 1rem 1.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-family: var(--font-family);
+    transition: var(--transition);
+    background: #f8f9fa;
+}
+
+.search-filter select:focus,
+.search-filter input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.1);
+}
+
+.search-filter button {
+    padding: 1rem 2.5rem;
+    background: linear-gradient(135deg, var(--primary-color), #ff6b81);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+}
+
+.search-filter button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 71, 87, 0.4);
+}
+
+.search-filter button:active {
+    transform: translateY(0);
+}
+
+/* Donor Results Grid */
+.donor-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.donor-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    border: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.donor-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.donor-card h4 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.donor-card h4 span {
+    background: linear-gradient(135deg, var(--primary-color), #ff6b81);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+}
+
+.donor-card p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.donor-card a {
+    padding: 0.8rem 1.8rem;
+    background: linear-gradient(135deg, var(--accent-color), #764ba2);
+    color: white;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(95, 39, 205, 0.3);
+    text-decoration: none;
+}
+
+.donor-card a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(95, 39, 205, 0.4);
+}
+    gap: 20px;
+}
+
+.nav-links a {
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--primary-color);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #d62828;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 5%;
+}
+
+/* Hero Section */
+.hero {
+    text-align: center;
+    padding: 4rem 1rem;
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    color: var(--white);
+    border-radius: 0 0 50px 50px;
+    margin-bottom: 2rem;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.btn-secondary {
+    background-color: var(--white);
+    color: var(--primary-color);
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    transition: transform 0.2s;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+}

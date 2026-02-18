@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Blood - BloodLife</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">BloodLife</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="register.html">Donate Now</a></li>
+                <li><a href="request.html" class="active">Request Blood</a></li>
+                <li><a href="admin-login.html">Admin Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="form-container" style="max-width: 600px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--secondary-color);">Request Blood</h2>
+            <form id="request-form">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="patient-name">Patient Name</label>
+                    <input type="text" id="patient-name" required style="width: 100%; padding: 0.8rem; margin-top: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+
+                <div class="form-row" style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="blood-group">Blood Group Needed</label>
+                        <select id="blood-group" required style="width: 100%; padding: 0.8rem; margin-top: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">Select</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="unit">Units (Bags)</label>
+                        <input type="number" id="unit" min="1" required style="width: 100%; padding: 0.8rem; margin-top: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="hospital">Hospital / Location</label>
+                    <input type="text" id="hospital" required style="width: 100%; padding: 0.8rem; margin-top: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="phone">Contact Number</label>
+                    <input type="tel" id="phone" required style="width: 100%; padding: 0.8rem; margin-top: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="needed-date">Date Needed</label>
+                    <input type="date" id="needed-date" required style="width: 100%; padding: 0.8rem; margin-top: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; border: none; cursor: pointer; font-size: 1rem;">Submit Request</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="js/request.js"></script>
+</body>
+</html>

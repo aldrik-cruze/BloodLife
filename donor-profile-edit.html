@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - BloodLife</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .edit-container {
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            margin: 0 0 1.5rem 0;
+            color: var(--secondary-color);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.9rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .readonly {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-save {
+            background: var(--primary-color);
+            color: white;
+        }
+        .btn-save:hover {
+            background: #c62828;
+        }
+        .btn-cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 6px;
+            display: none;
+        }
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #66bb6a;
+        }
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">BloodLife</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="donor-dashboard.html">Dashboard</a></li>
+                <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="edit-container">
+            <a href="donor-dashboard.html" class="back-link">← Back to Dashboard</a>
+
+            <div class="card">
+                <h2>Edit Profile</h2>
+
+                <div id="alert" class="alert"></div>
+
+                <form id="edit-form">
+                    <div class="form-group">
+                        <label for="fullname">Full Name *</label>
+                        <input type="text" id="fullname" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">Age *</label>
+                            <input type="number" id="age" min="18" max="65" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">Gender *</label>
+                            <select id="gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="blood-group">Blood Group</label>
+                            <input type="text" id="blood-group" readonly class="readonly">
+                            <small style="color: #999;">Blood group cannot be changed</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <input type="tel" id="phone" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" readonly class="readonly">
+                        <small style="color: #999;">Email cannot be changed</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Address *</label>
+                        <textarea id="address" required></textarea>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-cancel" onclick="location.href='donor-dashboard.html'">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-save">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        const token = localStorage.getItem('donor_token');
+
+        if (!token) {
+            window.location.href = 'donor-login.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('donor_token');
+            localStorage.removeItem('donor_info');
+            window.location.href = 'index.html';
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.status === 401 || response.status === 403) {
+                logout();
+            }
+            
+            return response.json();
+        }
+
+        async function loadProfile() {
+            try {
+                const data = await fetchWithAuth(`${API_BASE}/donor-auth/profile`);
+                
+                if (data.success) {
+                    const profile = data.data;
+                    document.getElementById('fullname').value = profile.fullname;
+                    document.getElementById('age').value = profile.age;
+                    document.getElementById('gender').value = profile.gender;
+                    document.getElementById('blood-group').value = profile.blood_group;
+                    document.getElementById('phone').value = profile.phone;
+                    document.getElementById('email').value = profile.account_email;
+                    document.getElementById('address').value = profile.address;
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showAlert('Error loading profile', 'error');
+            }
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                fullname: document.getElementById('fullname').value,
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value
+            };
+
+            try {
+                const data = await fetchWithAuth(`${API_BASE}/donor-auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (data.success) {
+                    showAlert('Profile updated successfully!', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'donor-dashboard.html';
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Update failed', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showAlert('Network error. Please try again.', 'error');
+            }
+        });
+
+        // Load profile on page load
+        loadProfile();
+    </script>
+</body>
+</html>

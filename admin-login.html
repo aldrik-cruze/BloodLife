@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - BloodLife</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 4rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">BloodLife</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="login-container">
+            <h2 style="margin-bottom: 20px; color: var(--secondary-color);">Admin Login</h2>
+            <form id="login-form">
+                <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px; text-align: left;">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 10px; cursor: pointer;">Login</button>
+            </form>
+            <p id="error-msg" style="color: red; margin-top: 10px; display: none;">Invalid credentials</p>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>

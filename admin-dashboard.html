@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#667eea">
+    <title>Admin Dashboard - BloodLife</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css?v=3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Loading spinner for better UX */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+        .loading-content .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border-width: 4px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Loading Dashboard...</p>
+        </div>
+    </div>
+    
+    <div class="admin-wrapper">
+        <!-- Modern Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <span class="logo-icon">💉</span>
+                    <div class="logo-text">
+                        <h3>BloodLife</h3>
+                        <span class="logo-subtitle">Admin Panel</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li>
+                        <a href="#" class="menu-item active" onclick="switchTab('dashboard')" data-tab="dashboard">
+                            <span class="menu-icon">📊</span>
+                            <span class="menu-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="menu-item" onclick="switchTab('donors')" data-tab="donors">
+                            <span class="menu-icon">👥</span>
+                            <span class="menu-text">Donors</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="menu-item" onclick="switchTab('requests')" data-tab="requests">
+                            <span class="menu-icon">🩸</span>
+                            <span class="menu-text">Blood Requests</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="menu-item" onclick="switchTab('analytics')" data-tab="analytics">
+                            <span class="menu-icon">📈</span>
+                            <span class="menu-text">Analytics</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="sidebar-footer">
+                    <a href="#" class="menu-item logout-item" id="logout-btn">
+                        <span class="menu-icon">🚪</span>
+                        <span class="menu-text">Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <h1 class="page-title" id="page-title">Dashboard Overview</h1>
+                    <p class="page-subtitle">Welcome back, Admin</p>
+                </div>
+                <div class="top-bar-right">
+                    <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                    <button class="icon-btn" id="export-btn" title="Export Data">
+                        <span>📥</span>
+                    </button>
+                    <div class="admin-profile">
+                        <div class="profile-avatar">A</div>
+                        <div class="profile-info">
+                            <span class="profile-name">Admin</span>
+                            <span class="profile-role">Administrator</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-content active">
+                <div class="content-wrapper">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card gradient-red">
+                            <div class="stat-icon">🩸</div>
+                            <div class="stat-content">
+                                <h3 class="stat-label">Total Donors</h3>
+                                <p class="stat-value" id="total-donors">0</p>
+                                <span class="stat-badge">All registered</span>
+                            </div>
+                        </div>
+                        <div class="stat-card gradient-green">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-content">
+                                <h3 class="stat-label">Available Donors</h3>
+                                <p class="stat-value" id="available-donors">0</p>
+                                <span class="stat-badge">Ready to donate</span>
+                            </div>
+                        </div>
+                        <div class="stat-card gradient-blue">
+                            <div class="stat-icon">💉</div>
+                            <div class="stat-content">
+                                <h3 class="stat-label">Total Requests</h3>
+                                <p class="stat-value" id="total-requests">0</p>
+                                <span class="stat-badge">All time</span>
+                            </div>
+                        </div>
+                        <div class="stat-card gradient-purple">
+                            <div class="stat-icon">⚡</div>
+                            <div class="stat-content">
+                                <h3 class="stat-label">O+ Donors</h3>
+                                <p class="stat-value" id="o-plus-donors">0</p>
+                                <span class="stat-badge">Universal type</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats Grid -->
+                    <div class="quick-stats">
+                        <h2 class="section-title">Blood Type Distribution</h2>
+                        <div class="blood-types-grid">
+                            <div class="blood-type-card" data-type="A+">
+                                <span class="blood-type-label">A+</span>
+                                <span class="blood-type-count" id="count-a-plus">0</span>
+                            </div>
+                            <div class="blood-type-card" data-type="A-">
+                                <span class="blood-type-label">A-</span>
+                                <span class="blood-type-count" id="count-a-minus">0</span>
+                            </div>
+                            <div class="blood-type-card" data-type="B+">
+                                <span class="blood-type-label">B+</span>
+                                <span class="blood-type-count" id="count-b-plus">0</span>
+                            </div>
+                            <div class="blood-type-card" data-type="B-">
+                                <span class="blood-type-label">B-</span>
+                                <span class="blood-type-count" id="count-b-minus">0</span>
+                            </div>
+                            <div class="blood-type-card" data-type="O+">
+                                <span class="blood-type-label">O+</span>
+                                <span class="blood-type-count" id="count-o-plus">0</span>
+                            </div>
+                            <div class="blood-type-card" data-type="O-">
+                                <span class="blood-type-label">O-</span>
+                                <span class="blood-type-count" id="count-o-minus">0</span>
+                            </div>
+                            <div class="blood-type-card" data-type="AB+">
+                                <span class="blood-type-label">AB+</span>
+                                <span class="blood-type-count" id="count-ab-plus">0</span>
+                            </div>
+                            <div class="blood-type-card" data-type="AB-">
+                                <span class="blood-type-label">AB-</span>
+                                <span class="blood-type-count" id="count-ab-minus">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="recent-activity">
+                        <h2 class="section-title">Recent Donors</h2>
+                        <div class="activity-list" id="recent-donors-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donors Tab -->
+            <div id="tab-donors" class="tab-content">
+                <div class="content-wrapper">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">All Donors</h2>
+                            <p class="section-subtitle">Manage and view all registered donors</p>
+                        </div>
+                        <button class="btn-primary-modern" onclick="window.location.href='register.html'">
+                            <span>➕</span> Add New Donor
+                        </button>
+                    </div>
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Blood Group</th>
+                                        <th>Contact</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="donor-table-body">
+                                    <!-- Rows loaded via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requests Tab -->
+            <div id="tab-requests" class="tab-content">
+                <div class="content-wrapper">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Blood Requests</h2>
+                            <p class="section-subtitle">View and manage all blood donation requests</p>
+                        </div>
+                        <button class="btn-primary-modern" onclick="window.location.href='request.html'">
+                            <span>➕</span> New Request
+                        </button>
+                    </div>
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Patient Name</th>
+                                        <th>Blood Type</th>
+                                        <th>Units</th>
+                                        <th>Hospital</th>
+                                        <th>Date Needed</th>
+                                        <th>Contact</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="request-table-body">
+                                    <!-- Rows loaded via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="tab-analytics" class="tab-content">
+                <div class="content-wrapper">
+                    <h2 class="section-title">System Analytics</h2>
+                    <p class="section-subtitle">Comprehensive insights and statistics</p>
+                    
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>📊 Growth Metrics</h3>
+                            <div class="metric-row">
+                                <span>Total Registrations</span>
+                                <strong id="analytics-total">15</strong>
+                            </div>
+                            <div class="metric-row">
+                                <span>Active Donors</span>
+                                <strong id="analytics-active">13</strong>
+                            </div>
+                            <div class="metric-row">
+                                <span>Inactive Donors</span>
+                                <strong id="analytics-inactive">2</strong>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card">
+                            <h3>🎯 Most Common Blood Type</h3>
+                            <div class="featured-blood-type">
+                                <span class="featured-type" id="most-common-type">O+</span>
+                                <span class="featured-count" id="most-common-count">4 donors</span>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card">
+                            <h3>⚠️ Rare Blood Types</h3>
+                            <div class="rare-types-list" id="rare-types-list">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <div class="analytics-card">
+                            <h3>📍 Coverage</h3>
+                            <p class="analytics-info">Donors available across multiple locations</p>
+                            <div class="coverage-badge">🌍 Multi-City Coverage</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/donor.js?v=3"></script>
+    <script src="js/request.js?v=2"></script>
+    <script src="js/dashboard.js?v=4"></script>
+    <script>
+        // Hide loading overlay when page is ready
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                    setTimeout(() => overlay.remove(), 300);
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

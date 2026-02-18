@@ -1,0 +1,340 @@
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 13:43:51"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 13:43:51"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 13:43:51"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 13:43:51"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 13:43:51"}
+{"code":"ER_PARSE_ERROR","errno":1064,"level":"error","message":"Error executing migration: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ALTER TABLE admins ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT' at line 7","sql":"-- Migration: Add new fields and tables for enhanced features\r\n-- Run this after the initial database.sql\r\n\r\nUSE blood_donation_system;\r\n\r\n-- Add updated_at to existing tables\r\nALTER TABLE admins ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;\r\nALTER TABLE donors ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;\r\nALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;\r\n\r\n-- Add role to admins table for multi-admin support\r\nALTER TABLE admins ADD COLUMN IF NOT EXISTS role ENUM('super_admin', 'admin') DEFAULT 'admin';\r\nALTER TABLE admins ADD COLUMN IF NOT EXISTS email VARCHAR(100) NULL;\r\nALTER TABLE admins ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255) NULL;\r\nALTER TABLE admins ADD COLUMN IF NOT EXISTS reset_token_expiry DATETIME NULL;\r\n\r\n-- Add emergency flag to blood requests\r\nALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS is_emergency TINYINT(1) DEFAULT 0;\r\n\r\n-- Create donations history table\r\nCREATE TABLE IF NOT EXISTS donations (\r\n    id INT AUTO_INCREMENT PRIMARY KEY,\r\n    donor_id INT NOT NULL,\r\n    donation_date DATE NOT NULL,\r\n    location VARCHAR(150) NOT NULL,\r\n    units INT DEFAULT 1,\r\n    notes TEXT,\r\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\r\n    FOREIGN KEY (donor_id) REFERENCES donors(id) ON DELETE CASCADE\r\n);\r\n\r\n-- Create notifications table\r\nCREATE TABLE IF NOT EXISTS notifications (\r\n    id INT AUTO_INCREMENT PRIMARY KEY,\r\n    recipient_email VARCHAR(100) NOT NULL,\r\n    recipient_phone VARCHAR(20),\r\n    subject VARCHAR(200) NOT NULL,\r\n    message TEXT NOT NULL,\r\n    type ENUM('email', 'sms', 'both') DEFAULT 'email',\r\n    status ENUM('pending', 'sent', 'failed') DEFAULT 'pending',\r\n    sent_at TIMESTAMP NULL,\r\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\r\n);\r\n\r\n-- Create donor_accounts table for donor self-service\r\nCREATE TABLE IF NOT EXISTS donor_accounts (\r\n    id INT AUTO_INCREMENT PRIMARY KEY,\r\n    donor_id INT NOT NULL UNIQUE,\r\n    email VARCHAR(100) NOT NULL UNIQUE,\r\n    password_hash VARCHAR(255) NOT NULL,\r\n    is_verified TINYINT(1) DEFAULT 0,\r\n    verification_token VARCHAR(255),\r\n    reset_token VARCHAR(255),\r\n    reset_token_expiry DATETIME,\r\n    last_login TIMESTAMP NULL,\r\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\r\n    FOREIGN KEY (donor_id) REFERENCES donors(id) ON DELETE CASCADE\r\n);\r\n\r\n-- Add indexes for better performance\r\nCREATE INDEX IF NOT EXISTS idx_donors_blood_group ON donors(blood_group);\r\nCREATE INDEX IF NOT EXISTS idx_donors_availability ON donors(availability);\r\nCREATE INDEX IF NOT EXISTS idx_donors_email ON donors(email);\r\nCREATE INDEX IF NOT EXISTS idx_requests_blood_group ON blood_requests(blood_group);\r\nCREATE INDEX IF NOT EXISTS idx_requests_status ON blood_requests(status);\r\nCREATE INDEX IF NOT EXISTS idx_requests_emergency ON blood_requests(is_emergency);\r\nCREATE INDEX IF NOT EXISTS idx_donations_donor_id ON donations(donor_id);\r\nCREATE INDEX IF NOT EXISTS idx_donations_date ON donations(donation_date);\r\nCREATE INDEX IF NOT EXISTS idx_notifications_status ON notifications(status);\r\n\r\n-- Update first admin to super_admin if exists\r\nUPDATE admins SET role = 'super_admin' WHERE username = 'admin' AND role = 'admin';\r\n","sqlMessage":"You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ALTER TABLE admins ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT' at line 7","sqlState":"42000","stack":"Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ALTER TABLE admins ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT' at line 7\n    at Packet.asError (D:\\Projects\\blood\\node_modules\\mysql2\\lib\\packets\\packet.js:739:17)\n    at Query.execute (D:\\Projects\\blood\\node_modules\\mysql2\\lib\\commands\\command.js:29:26)\n    at Connection.handlePacket (D:\\Projects\\blood\\node_modules\\mysql2\\lib\\base\\connection.js:508:34)\n    at PacketParser.onPacket (D:\\Projects\\blood\\node_modules\\mysql2\\lib\\base\\connection.js:93:12)\n    at PacketParser.executeStart (D:\\Projects\\blood\\node_modules\\mysql2\\lib\\packet_parser.js:75:16)\n    at Socket.<anonymous> (D:\\Projects\\blood\\node_modules\\mysql2\\lib\\base\\connection.js:100:25)\n    at Socket.emit (node:events:518:28)\n    at addChunk (node:internal/streams/readable:561:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\n    at Readable.push (node:internal/streams/readable:392:5)","timestamp":"2026-02-18 13:43:51"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 13:44:42"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 13:44:43"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 13:44:43"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 13:44:43"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 13:44:43"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 13:44:43"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 13:44:43"}
+{"level":"http","message":"GET /api/health - ::1","timestamp":"2026-02-18 13:45:05"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 13:47:48"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 13:47:49"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 13:47:49"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 13:47:49"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 13:47:49"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 13:47:49"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 13:47:49"}
+{"level":"http","message":"GET /api/health - ::1","timestamp":"2026-02-18 13:48:05"}
+{"level":"http","message":"GET /api/donors?page=1 - ::1","timestamp":"2026-02-18 13:48:08"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 13:50:41"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 13:50:41"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 13:50:41"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 13:50:41"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 13:50:41"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 13:50:41"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 13:50:41"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:50:47"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:50:47"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:50:47"}
+{"level":"http","message":"GET /admin-login.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:50:51"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:50:51"}
+{"level":"http","message":"GET /js/auth.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:50:51"}
+{"level":"http","message":"POST /api/admin/login - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:51:03"}
+{"isOperational":true,"level":"error","message":"Unhandled Rejection: Invalid credentials","stack":"Error: Invalid credentials\n    at D:\\Projects\\blood\\routes\\admin.js:47:19","statusCode":401,"timestamp":"2026-02-18 13:51:03"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 13:53:12"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 13:53:13"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 13:53:13"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 13:53:13"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 13:53:13"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 13:53:13"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 13:53:13"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:53:20"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:53:20"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:53:20"}
+{"level":"http","message":"GET /admin-login.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:53:25"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:53:25"}
+{"level":"http","message":"GET /js/auth.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:53:25"}
+{"level":"http","message":"POST /api/admin/login - ::ffff:127.0.0.1","timestamp":"2026-02-18 13:53:36"}
+{"isOperational":true,"level":"error","message":"Unhandled Rejection: Invalid credentials","stack":"Error: Invalid credentials\n    at D:\\Projects\\blood\\routes\\admin.js:47:19","statusCode":401,"timestamp":"2026-02-18 13:53:36"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 13:58:28"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 13:58:29"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 13:58:29"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 13:58:29"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 13:58:29"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 13:58:29"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 13:58:29"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 14:01:07"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 14:01:07"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 14:01:07"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 14:01:07"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 14:01:07"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 14:01:07"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 14:01:07"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:01:11"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:01:11"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:01:11"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:04:54"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 14:05:16"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 14:05:16"}
+{"level":"info","message":"Environment: production","timestamp":"2026-02-18 14:05:16"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 14:05:16"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 14:05:16"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 14:05:16"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 14:05:16"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 14:05:23"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 14:05:23"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 14:05:23"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 14:05:23"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 14:05:23"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 14:05:23"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 14:05:23"}
+{"level":"http","message":"POST /api/donor-auth/login - ::1","timestamp":"2026-02-18 14:06:20"}
+{"level":"info","message":"Donor login: john.anderson@demo.com","timestamp":"2026-02-18 14:06:20"}
+{"level":"http","message":"GET /api/donors?blood_group=O%2B - ::1","timestamp":"2026-02-18 14:07:21"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:26"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:26"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:26"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:29"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:29"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:29"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:30"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:30"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:30"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:30"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:31"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:31"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:31"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:31"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:31"}
+{"level":"info","message":"SIGINT signal received: closing HTTP server","timestamp":"2026-02-18 14:08:37"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 14:08:44"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 14:08:45"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 14:08:45"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 14:08:45"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 14:08:45"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 14:08:45"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 14:08:45"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:48"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:48"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:48"}
+{"level":"http","message":"GET /admin-login.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:56"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:56"}
+{"level":"http","message":"GET /js/auth.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:08:56"}
+{"level":"http","message":"POST /api/admin/login - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:09:09"}
+{"isOperational":true,"level":"error","message":"Unhandled Rejection: Invalid credentials","stack":"Error: Invalid credentials\n    at D:\\Projects\\blood\\routes\\admin.js:47:19","statusCode":401,"timestamp":"2026-02-18 14:09:09"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 14:10:08"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 14:10:09"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 14:10:09"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 14:10:09"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 14:10:09"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 14:10:09"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 14:10:09"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:12"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:12"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:12"}
+{"level":"http","message":"GET /donor-login.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:30"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:30"}
+{"level":"http","message":"POST /api/donor-auth/login - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:56"}
+{"level":"info","message":"Donor login: john.anderson@demo.com","timestamp":"2026-02-18 14:10:56"}
+{"level":"http","message":"GET /donor-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:57"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:57"}
+{"level":"http","message":"GET /api/donor-auth/profile - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:57"}
+{"level":"http","message":"GET /api/donor-auth/eligibility - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:57"}
+{"level":"http","message":"GET /api/donor-auth/donations - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:10:57"}
+{"level":"http","message":"GET /donor-profile-edit.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:18"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:18"}
+{"level":"http","message":"GET /api/donor-auth/profile - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:18"}
+{"level":"http","message":"GET /donor-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:24"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:24"}
+{"level":"http","message":"GET /api/donor-auth/profile - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:24"}
+{"level":"http","message":"GET /api/donor-auth/eligibility - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:24"}
+{"level":"http","message":"GET /api/donor-auth/donations - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:24"}
+{"level":"http","message":"GET /donor-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:27"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:27"}
+{"level":"http","message":"GET /api/donor-auth/profile - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:27"}
+{"level":"http","message":"GET /api/donor-auth/eligibility - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:27"}
+{"level":"http","message":"GET /api/donor-auth/donations - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:27"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:29"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:30"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:30"}
+{"level":"http","message":"GET /admin-login.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:41"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:41"}
+{"level":"http","message":"GET /js/auth.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:41"}
+{"level":"http","message":"POST /api/admin/login - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:11:57"}
+{"isOperational":true,"level":"error","message":"Unhandled Rejection: Invalid credentials","stack":"Error: Invalid credentials\n    at D:\\Projects\\blood\\routes\\admin.js:47:19","statusCode":401,"timestamp":"2026-02-18 14:11:57"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 14:13:13"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 14:13:13"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 14:13:13"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 14:13:13"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 14:13:13"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 14:13:13"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 14:13:13"}
+{"level":"http","message":"POST /api/admin/login - ::1","timestamp":"2026-02-18 14:13:47"}
+{"isOperational":true,"level":"error","message":"Unhandled Rejection: Invalid credentials","stack":"Error: Invalid credentials\n    at D:\\Projects\\blood\\routes\\admin.js:47:19","statusCode":401,"timestamp":"2026-02-18 14:13:47"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 14:15:03"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 14:15:03"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 14:15:03"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 14:15:03"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 14:15:03"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 14:15:03"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 14:15:03"}
+{"level":"http","message":"POST /api/admin/login - ::1","timestamp":"2026-02-18 14:15:37"}
+{"level":"info","message":"Admin login successful: admin","timestamp":"2026-02-18 14:15:37"}
+{"level":"http","message":"POST /api/admin/login - ::1","timestamp":"2026-02-18 14:16:29"}
+{"level":"info","message":"Admin login successful: admin","timestamp":"2026-02-18 14:16:29"}
+{"level":"http","message":"GET /api/admin/analytics - ::1","timestamp":"2026-02-18 14:16:29"}
+{"level":"info","message":"Initializing database connection...","timestamp":"2026-02-18 14:17:03"}
+{"level":"info","message":"🚀 Server running on http://localhost:3000","timestamp":"2026-02-18 14:17:03"}
+{"level":"info","message":"Environment: development","timestamp":"2026-02-18 14:17:03"}
+{"level":"info","message":"Connected to MySQL server for initialization.","timestamp":"2026-02-18 14:17:03"}
+{"level":"info","message":"Tables exist. Running migrations...","timestamp":"2026-02-18 14:17:03"}
+{"level":"info","message":"Running database migrations...","timestamp":"2026-02-18 14:17:03"}
+{"level":"info","message":"Database migrations completed.","timestamp":"2026-02-18 14:17:03"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:07"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:07"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:07"}
+{"level":"http","message":"GET /admin-login.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:09"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:09"}
+{"level":"http","message":"GET /js/auth.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:09"}
+{"level":"http","message":"POST /api/admin/login - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:17"}
+{"level":"info","message":"Admin login successful: admin","timestamp":"2026-02-18 14:17:17"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:18"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:18"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:18"}
+{"level":"http","message":"GET /css/admin.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:18"}
+{"level":"http","message":"GET /js/request.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:18"}
+{"level":"http","message":"GET /js/dashboard.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:18"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:18"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:18"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:17:18"}
+{"level":"http","message":"GET /api/donors - ::1","timestamp":"2026-02-18 14:18:30"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:19:06"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:19:07"}
+{"level":"http","message":"GET /css/admin.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:19:07"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:19:07"}
+{"level":"http","message":"GET /js/request.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:19:07"}
+{"level":"http","message":"GET /js/dashboard.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:19:07"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:19:07"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:19:07"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:19:07"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:20:01"}
+{"level":"http","message":"GET /api/donors?blood_group=O%2B - ::1","timestamp":"2026-02-18 14:21:54"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:22:42"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:22:42"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:22:42"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:22:50"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:22:50"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:22:50"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:22:50"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:23:36"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:23:36"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:23:36"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:23:36"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:27:45"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:27:45"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:27:45"}
+{"level":"http","message":"GET /admin-login.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /js/auth.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /css/admin.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /js/request.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /js/dashboard.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:09"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:13"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /css/admin.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /js/request.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /js/dashboard.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /css/admin.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /js/request.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /js/dashboard.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /css/admin.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /js/request.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /js/dashboard.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:14"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:15"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:15"}
+{"level":"http","message":"GET /css/admin.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:15"}
+{"level":"http","message":"GET /js/donor.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:15"}
+{"level":"http","message":"GET /js/request.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:15"}
+{"level":"http","message":"GET /js/dashboard.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:15"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:28:15"}
+{"level":"http","message":"GET /api/donors - ::1","timestamp":"2026-02-18 14:28:48"}
+{"level":"http","message":"GET /test-display.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:29:20"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:29:20"}
+{"level":"http","message":"GET /index.html - ::1","timestamp":"2026-02-18 14:29:34"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:35"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:35"}
+{"level":"http","message":"GET /css/admin.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:35"}
+{"level":"http","message":"GET /js/donor.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:35"}
+{"level":"http","message":"GET /js/request.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:35"}
+{"level":"http","message":"GET /js/dashboard.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:35"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:35"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:45"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:45"}
+{"level":"http","message":"GET /css/admin.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:45"}
+{"level":"http","message":"GET /js/donor.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:45"}
+{"level":"http","message":"GET /js/request.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:46"}
+{"level":"http","message":"GET /js/dashboard.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:46"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:46"}
+{"level":"http","message":"GET /favicon.ico - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:46"}
+{"error":{"isOperational":true,"status":"error","statusCode":404},"level":"error","message":"Error: Route /favicon.ico not found","method":"GET","stack":"Error: Route /favicon.ico not found\n    at notFoundHandler (D:\\Projects\\blood\\middleware\\errorHandler.js:54:17)\n    at Layer.handleRequest (D:\\Projects\\blood\\node_modules\\router\\lib\\layer.js:152:17)\n    at trimPrefix (D:\\Projects\\blood\\node_modules\\router\\index.js:342:13)\n    at D:\\Projects\\blood\\node_modules\\router\\index.js:297:9\n    at processParams (D:\\Projects\\blood\\node_modules\\router\\index.js:582:12)\n    at next (D:\\Projects\\blood\\node_modules\\router\\index.js:291:5)\n    at SendStream.error (D:\\Projects\\blood\\node_modules\\serve-static\\index.js:120:7)\n    at SendStream.emit (node:events:518:28)\n    at SendStream.error (D:\\Projects\\blood\\node_modules\\send\\index.js:168:17)\n    at SendStream.onStatError (D:\\Projects\\blood\\node_modules\\send\\index.js:315:12)","timestamp":"2026-02-18 14:31:46","url":"/favicon.ico"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:57"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:57"}
+{"level":"http","message":"GET /js/donor.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:31:57"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:32:41"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:32:41"}
+{"level":"http","message":"GET /js/donor.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:32:41"}
+{"level":"http","message":"GET /direct-test.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:33:21"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:33:22"}
+{"level":"http","message":"GET / - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:33:32"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:33:32"}
+{"level":"http","message":"GET /js/donor.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:33:32"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:34:41"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:34:42"}
+{"level":"http","message":"GET /js/donor.js?v=3 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:34:42"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:34:42"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:34:42"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:34:42"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:43:56"}
+{"level":"http","message":"GET /css/style.css?v=4 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:43:56"}
+{"level":"http","message":"GET /js/donor.js?v=3 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:43:56"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:43:56"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:43:56"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:43:56"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:45:02"}
+{"level":"http","message":"GET /mobile-test.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:48:20"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:48:44"}
+{"level":"http","message":"GET /css/style.css?v=5 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:48:45"}
+{"level":"http","message":"GET /js/donor.js?v=3 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:48:45"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:48:45"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:48:45"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:48:45"}
+{"level":"http","message":"GET /index.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:49:29"}
+{"level":"http","message":"GET /css/style.css?v=5 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:49:29"}
+{"level":"http","message":"GET /js/donor.js?v=3 - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:49:29"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:49:29"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:49:29"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 14:49:29"}
+{"level":"http","message":"GET /admin-login.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:44"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:44"}
+{"level":"http","message":"GET /js/auth.js - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:44"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:44"}
+{"level":"http","message":"GET /css/style.css - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /css/admin.css?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /js/donor.js?v=3 - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /js/dashboard.js?v=3 - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /js/request.js?v=2 - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /api/requests - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /api/donors - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:07:45"}
+{"level":"http","message":"GET /admin-dashboard.html - ::ffff:127.0.0.1","timestamp":"2026-02-18 15:09:21"}
