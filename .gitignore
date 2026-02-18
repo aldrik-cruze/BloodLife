@@ -1,4 +1,33 @@
+# Environment variables (NEVER commit this!)
+.env
+.env.local
+.env.production
+.env.test
 
+# Dependencies
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Logs
+logs/
+*.log
+server.log
+
+# Backups
+*.backup
+server-old.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test coverage
+coverage/
 
 #Ignore vscode AI rules
 .github\instructions\codacy.instructions.md
