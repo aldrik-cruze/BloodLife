@@ -4,17 +4,44 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const logger = require('../utils/logger');
 
-const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD || '',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    multipleStatements: true
-};
+// Parse DATABASE_URL if provided (Railway format)
+let dbConfig = {};
+let DB_NAME = process.env.DB_NAME;
 
-const DB_NAME = process.env.DB_NAME;
+if (process.env.DATABASE_URL) {
+    // Parse Railway's DATABASE_URL: mysql://user:pass@host:port/database
+    try {
+        const url = new URL(process.env.DATABASE_URL);
+        dbConfig = {
+            host: url.hostname,
+            port: url.port || 3306,
+            user: url.username,
+            password: url.password,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0,
+            multipleStatements: true
+        };
+        DB_NAME = url.pathname.slice(1); // Remove leading '/'
+        logger.info('Using DATABASE_URL for connection');
+    } catch (error) {
+        logger.error('Failed to parse DATABASE_URL:', error);
+        process.exit(1);
+    }
+} else {
+    // Use individual environment variables
+    dbConfig = {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT || 3306,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD || '',
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        multipleStatements: true
+    };
+    logger.info('Using individual DB variables for connection');
+}
 
 const apiDb = mysql.createPool({
     ...dbConfig,

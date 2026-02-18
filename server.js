@@ -8,12 +8,17 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
 // Validate required environment variables
-const requiredEnvVars = ['DB_HOST', 'DB_USER', 'DB_NAME', 'JWT_SECRET'];
-const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+// Railway provides DATABASE_URL, but we can also use individual DB variables
+const hasIndividualDbVars = process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME;
+const hasDatabaseUrl = process.env.DATABASE_URL;
 
-if (missingEnvVars.length > 0) {
-    logger.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
-    logger.error('Please check your .env file');
+if (!hasIndividualDbVars && !hasDatabaseUrl) {
+    logger.error('Missing database configuration. Need either DATABASE_URL or DB_HOST/DB_USER/DB_NAME');
+    process.exit(1);
+}
+
+if (!process.env.JWT_SECRET) {
+    logger.error('Missing required environment variable: JWT_SECRET');
     process.exit(1);
 }
 
