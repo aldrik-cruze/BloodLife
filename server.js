@@ -10,9 +10,10 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 // Validate required environment variables
 // Railway provides DATABASE_URL, but we can also use individual DB variables
 const hasIndividualDbVars = process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME;
-const hasDatabaseUrl = process.env.DATABASE_URL;
+const hasDatabaseUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
+const hasRailwayVars = process.env.MYSQLHOST && process.env.MYSQLUSER;
 
-if (!hasIndividualDbVars && !hasDatabaseUrl) {
+if (!hasIndividualDbVars && !hasDatabaseUrl && !hasRailwayVars) {
     logger.error('Missing database configuration. Need either DATABASE_URL or DB_HOST/DB_USER/DB_NAME');
     process.exit(1);
 }

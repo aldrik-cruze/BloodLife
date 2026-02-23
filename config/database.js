@@ -8,10 +8,10 @@ const logger = require('../utils/logger');
 let dbConfig = {};
 let DB_NAME = process.env.DB_NAME;
 
-if (process.env.DATABASE_URL) {
-    // Parse Railway's DATABASE_URL: mysql://user:pass@host:port/database
+if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
+    // Parse Railway's DATABASE_URL or MYSQL_URL
     try {
-        const url = new URL(process.env.DATABASE_URL);
+        const url = new URL(process.env.DATABASE_URL || process.env.MYSQL_URL);
         dbConfig = {
             host: url.hostname,
             port: url.port || 3306,
@@ -22,12 +22,26 @@ if (process.env.DATABASE_URL) {
             queueLimit: 0,
             multipleStatements: true
         };
-        DB_NAME = url.pathname.slice(1); // Remove leading '/'
+        DB_NAME = url.pathname.slice(1);
         logger.info('Using DATABASE_URL for connection');
     } catch (error) {
         logger.error('Failed to parse DATABASE_URL:', error);
         process.exit(1);
     }
+} else if (process.env.MYSQLHOST) {
+    // Railway individual MySQL plugin variables
+    dbConfig = {
+        host: process.env.MYSQLHOST,
+        port: process.env.MYSQLPORT || 3306,
+        user: process.env.MYSQLUSER,
+        password: process.env.MYSQLPASSWORD || '',
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        multipleStatements: true
+    };
+    DB_NAME = process.env.MYSQLDATABASE || process.env.DB_NAME;
+    logger.info('Using Railway MYSQL variables for connection');
 } else {
     // Use individual environment variables
     dbConfig = {
