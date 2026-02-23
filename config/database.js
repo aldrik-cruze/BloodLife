@@ -20,7 +20,8 @@ if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0,
-            multipleStatements: true
+            multipleStatements: true,
+            ssl: { rejectUnauthorized: false }
         };
         DB_NAME = url.pathname.slice(1);
         logger.info('Using DATABASE_URL for connection');
@@ -38,12 +39,13 @@ if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0,
-        multipleStatements: true
+        multipleStatements: true,
+        ssl: { rejectUnauthorized: false }
     };
     DB_NAME = process.env.MYSQLDATABASE || process.env.DB_NAME;
     logger.info('Using Railway MYSQL variables for connection');
 } else {
-    // Use individual environment variables
+    // Use individual environment variables (local)
     dbConfig = {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT || 3306,
@@ -66,8 +68,10 @@ function initDatabase() {
     logger.info('Initializing database connection...');
     const initDbInfo = mysql.createConnection({
         host: dbConfig.host,
+        port: dbConfig.port,
         user: dbConfig.user,
-        password: dbConfig.password
+        password: dbConfig.password,
+        ssl: dbConfig.ssl
     });
 
     initDbInfo.connect((err) => {

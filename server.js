@@ -30,6 +30,9 @@ if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust Railway/Render/Heroku proxy — required for rate limiting behind reverse proxies
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
     contentSecurityPolicy: false, // Allow inline scripts for development
