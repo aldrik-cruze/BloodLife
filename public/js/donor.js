@@ -3,7 +3,7 @@
  * Handles data persistence and donor management using API.
  */
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = window.location.origin + '/api';
 
 class DonorManager {
     async getAllDonors() {
@@ -244,7 +244,7 @@ async function loadTopDonors() {
         const allDonors = result.data || result;
 
         // Fetch donation records
-        const donationsResponse = await fetch(`http://localhost:5000/api/donors`);
+        const donationsResponse = await fetch(`${window.location.origin}/api/donors`);
         const donationsResult = await donationsResponse.json();
         
         // Count donations per donor (using demo data pattern)

@@ -455,7 +455,7 @@
         document.getElementById('nav-donor-name').textContent = info.name || 'Profile';
 
         // Fetch latest profile picture
-        fetch('http://localhost:5000/api/donor-auth/profile', {
+        fetch(window.location.origin + '/api/donor-auth/profile', {
           headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(r => r.json())

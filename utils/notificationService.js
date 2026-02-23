@@ -113,7 +113,7 @@ class NotificationService {
         <tr>
           <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">
             <p style="margin:0;font-size:12px;color:#9ca3af;">© 2025 BloodLife · You received this because you are a registered donor.</p>
-            <p style="margin:4px 0 0;font-size:12px;color:#9ca3af;">To stop receiving alerts, update your availability in your <a href="http://localhost:5000/donor-dashboard.html" style="color:#dc2626;">donor dashboard</a>.</p>
+            <p style="margin:4px 0 0;font-size:12px;color:#9ca3af;">To stop receiving alerts, update your availability in your <a href="${process.env.APP_URL || 'https://bloodlife-production.up.railway.app'}/donor-dashboard.html" style="color:#dc2626;">donor dashboard</a>.</p>
           </td>
         </tr>
 
@@ -190,7 +190,7 @@ class NotificationService {
             <p style="margin:0 0 28px;color:#4b5563;font-size:14px;line-height:1.7;">
               We'll send you a notification whenever there's an urgent blood request matching your blood group. You can update your availability anytime from your donor dashboard.
             </p>
-            <a href="http://localhost:5000/login.html" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:13px 28px;border-radius:10px;font-size:15px;font-weight:600;">Go to Dashboard →</a>
+            <a href="${process.env.APP_URL || 'https://bloodlife-production.up.railway.app'}/login.html" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:13px 28px;border-radius:10px;font-size:15px;font-weight:600;">Go to Dashboard →</a>
           </td>
         </tr>
         <!-- Footer -->

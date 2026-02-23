@@ -3,7 +3,7 @@
  * Handles blood request submission and persistence using API.
  */
 
-const API_REQ_URL = 'http://localhost:5000/api';
+const API_REQ_URL = window.location.origin + '/api';
 
 class RequestManager {
     async addRequest(request) {
