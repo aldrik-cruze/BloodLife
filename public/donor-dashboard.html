@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Dashboard — BloodLife</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ─── Navigation ─── -->
+  <header id="main-header">
+    <nav>
+      <a href="index.html" class="logo">❤️ BloodLife</a>
+
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="donor-dashboard.html" class="active">Dashboard</a></li>
+        <li><a href="#" id="logout-link">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container dashboard-page">
+
+      <!-- ─── Dashboard Header ─── -->
+      <div class="dashboard-header">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <img id="header-profile-pic"
+               src="https://ui-avatars.com/api/?name=Donor&background=ff4757&color=fff&size=56"
+               alt="Profile"
+               style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #ff4757;flex-shrink:0;">
+          <div>
+            <h1>Welcome, <span id="donor-name">Donor</span>! 👋</h1>
+            <p id="blood-group-display"></p>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+      </div>
+
+      <!-- ─── Stat Cards Grid ─── -->
+      <div class="dashboard-grid">
+
+        <!-- Eligibility Card -->
+        <div class="card stat-card">
+          <div class="card-header">
+            <h3>🩸 Donation Eligibility</h3>
+          </div>
+          <div class="card-body" id="eligibility-status" style="text-align:center;">
+            <div class="stat-value" id="days-count">--</div>
+            <div class="stat-label" id="days-label">Loading…</div>
+            <div id="eligibility-badge"></div>
+          </div>
+        </div>
+
+        <!-- Profile Summary -->
+        <div class="card">
+          <div class="card-header">
+            <h3>👤 Profile Information</h3>
+          </div>
+          <div class="card-body">
+            <div class="profile-info" id="profile-summary">
+              <div class="info-row">
+                <span class="info-label">Loading…</span>
+              </div>
+            </div>
+            <button class="btn-edit" onclick="location.href='donor-profile-edit.html'">Edit Profile</button>
+          </div>
+        </div>
+
+        <!-- Availability Toggle -->
+        <div class="card">
+          <div class="card-header">
+            <h3>📡 Availability Status</h3>
+          </div>
+          <div class="card-body">
+            <p style="color:var(--text-muted);font-size:.9rem;margin-bottom:.5rem;">
+              Toggle your availability to receive blood donation requests
+            </p>
+            <div class="availability-toggle">
+              <label class="switch">
+                <input type="checkbox" id="availability-toggle">
+                <span class="slider"></span>
+              </label>
+              <span id="availability-text" style="font-weight:600;">Available</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.dashboard-grid -->
+
+      <!-- ─── Donation History ─── -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 Donation History</h3>
+        </div>
+        <div class="card-body">
+          <div class="donation-history" id="donation-history">
+            <div class="no-data">Loading donation history…</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.container.dashboard-page -->
+  </main>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
+
+    // Check authentication
+    const token = localStorage.getItem('donor_token');
+    if (!token) {
+        window.location.href = 'login.html';
+    }
+
+    function logout() {
+        localStorage.removeItem('donor_token');
+        localStorage.removeItem('donor_info');
+        window.location.href = 'login.html';
+    }
+
+    document.getElementById('logout-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        logout();
+    });
+
+    async function fetchWithAuth(url) {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (response.status === 401 || response.status === 403) {
+            logout();
+        }
+        return response.json();
+    }
+
+    async function loadProfile() {
+        try {
+            const data = await fetchWithAuth(`${API_BASE}/donor-auth/profile`);
+            
+            if (data.success) {
+                const profile = data.data;
+                
+                // Update header
+                document.getElementById('donor-name').textContent = profile.fullname;
+                document.getElementById('blood-group-display').innerHTML = 
+                    `Blood Group: <span class="blood-group-display">${profile.blood_group}</span>`;
+
+                // Update profile picture
+                const picEl = document.getElementById('header-profile-pic');
+                picEl.src = profile.profile_picture ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.fullname)}&background=ff4757&color=fff&size=56`;
+                
+                // Update profile summary
+                document.getElementById('profile-summary').innerHTML = `
+                    <div class="info-row">
+                        <span class="info-label">Age</span>
+                        <span class="info-value">${profile.age} years</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Gender</span>
+                        <span class="info-value">${profile.gender}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Phone</span>
+                        <span class="info-value">${profile.phone}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value">${profile.account_email}</span>
+                    </div>
+                `;
+
+                // Update availability toggle
+                const availabilityToggle = document.getElementById('availability-toggle');
+                availabilityToggle.checked = profile.availability === 1;
+                updateAvailabilityText(profile.availability === 1);
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+        }
+    }
+
+    async function loadEligibility() {
+        try {
+            const data = await fetchWithAuth(`${API_BASE}/donor-auth/eligibility`);
+            
+            if (data.success) {
+                const { eligible, days_until_eligible, next_donation_date } = data.data;
+                
+                if (eligible) {
+                    document.getElementById('days-count').textContent = '✓';
+                    document.getElementById('days-label').textContent = 'Ready to Donate';
+                    document.getElementById('eligibility-badge').innerHTML = 
+                        '<span class="eligibility-badge eligible">ELIGIBLE</span>';
+                } else {
+                    document.getElementById('days-count').textContent = days_until_eligible;
+                    document.getElementById('days-label').textContent = 'days until eligible';
+                    document.getElementById('eligibility-badge').innerHTML = 
+                        `<span class="eligibility-badge not-eligible">Next: ${next_donation_date}</span>`;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading eligibility:', error);
+        }
+    }
+
+    async function loadDonationHistory() {
+        try {
+            const data = await fetchWithAuth(`${API_BASE}/donor-auth/donations`);
+            
+            if (data.success) {
+                const historyDiv = document.getElementById('donation-history');
+                
+                if (data.data.length === 0) {
+                    historyDiv.innerHTML = '<div class="no-data">No donation history yet</div>';
+                } else {
+                    historyDiv.innerHTML = data.data.map(donation => `
+                        <div class="donation-item">
+                            <div class="donation-date">${new Date(donation.donation_date).toLocaleDateString()}</div>
+                            <div class="donation-location">📍 ${donation.location}</div>
+                            ${donation.units > 1 ? `<div class="donation-location">${donation.units} units</div>` : ''}
+                        </div>
+                    `).join('');
+                }
+            }
+        } catch (error) {
+            console.error('Error loading donation history:', error);
+        }
+    }
+
+    function updateAvailabilityText(available) {
+        document.getElementById('availability-text').textContent = 
+            available ? 'Available for Donation' : 'Not Available';
+    }
+
+    document.getElementById('availability-toggle').addEventListener('change', async (e) => {
+        const available = e.target.checked;
+        
+        try {
+            const response = await fetch(`${API_BASE}/donor-auth/profile`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ availability: available })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                updateAvailabilityText(available);
+            }
+        } catch (error) {
+            console.error('Error updating availability:', error);
+            e.target.checked = !available; // Revert on error
+        }
+    });
+
+    // Load all data
+    loadProfile();
+    loadEligibility();
+    loadDonationHistory();
+  </script>
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    hamburger.addEventListener('click', function () {
+      const header = document.getElementById('main-header');
+      const open = header.classList.toggle('nav-open');
+      this.setAttribute('aria-expanded', open);
+    });
+  </script>
+
+  <footer style="background:#111827;color:rgba(255,255,255,.55);text-align:center;padding:1.5rem 1rem;font-size:.82rem;margin-top:auto;">
+    <p style="margin:0;">© 2026 <a href="index.html" style="color:#f87171;font-weight:600;">BloodLife</a> · Made with ❤️ for humanity · <a href="request.html" style="color:rgba(255,255,255,.6);">Emergency Request</a></p>
+  </footer>
+
+</body>
+</html>

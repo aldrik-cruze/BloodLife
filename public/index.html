@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#dc2626">
+  <meta name="description" content="BloodLife — Save lives through blood donation. Find donors, request blood, and join a community of heroes.">
+  <title>BloodLife — Save Lives Through Blood Donation</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       NAVIGATION
+  ═══════════════════════════════════════ -->
+  <header id="main-header">
+    <nav>
+      <a href="index.html" class="logo">
+        <span class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.746 4.068 2 6.5 2 8.572 2 10.5 3 12 5c1.5-2 3.428-3 5.5-3C19.932 2 23 3.746 23 7.191c0 4.105-5.37 8.863-11 14.402z" fill="#dc2626"/>
+          </svg>
+        </span>
+        BloodLife
+      </a>
+
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="request.html">Request Blood</a></li>
+        <li id="nav-auth-links">
+          <a href="login.html">Login</a>
+        </li>
+        <li id="nav-signup-link"><a href="signup.html" class="nav-cta">Sign Up</a></li>
+        <li id="nav-profile-link" style="display:none;">
+          <a href="donor-dashboard.html" id="nav-profile-btn" style="display:flex;align-items:center;gap:.5rem;">
+            <img id="nav-profile-pic" src="" alt="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid #ff4757;">
+            <span id="nav-donor-name"></span>
+          </a>
+        </li>
+        <li id="nav-logout-link" style="display:none;">
+          <a href="#" onclick="navLogout();return false;" class="nav-cta" style="background:#ff4757;">Logout</a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════
+         HERO SECTION
+    ═══════════════════════════════════════ -->
+    <section class="hl-hero">
+      <!-- Background layers -->
+      <div class="hl-hero-bg"></div>
+      <div class="hl-hero-dots"></div>
+
+      <!-- Floating blood-type badges -->
+      <div class="hl-badge hl-badge-1">A+</div>
+      <div class="hl-badge hl-badge-2">O−</div>
+      <div class="hl-badge hl-badge-3">B+</div>
+      <div class="hl-badge hl-badge-4">AB+</div>
+
+      <div class="container hl-hero-inner">
+        <!-- Left: Text -->
+        <div class="hl-hero-text">
+          <div class="hl-hero-eyebrow">
+            <span class="hl-pulse-dot"></span>
+            Always Available · All Blood Types
+          </div>
+          <h1 class="hl-hero-title">
+            One Donation<br>
+            <span class="hl-hero-highlight">Saves 3 Lives</span>
+          </h1>
+          <p class="hl-hero-sub">
+            Join thousands of heroes making a real difference. Find donors near you, register as a donor, or request blood — all in one place.
+          </p>
+          <div class="hl-hero-actions">
+            <a href="register.html" class="hl-btn-hero-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.746 4.068 2 6.5 2 8.572 2 10.5 3 12 5c1.5-2 3.428-3 5.5-3C19.932 2 23 3.746 23 7.191c0 4.105-5.37 8.863-11 14.402z"/></svg>
+              Become a Donor
+            </a>
+            <a href="request.html" class="hl-btn-hero-secondary">
+              Request Blood
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+          <!-- Trust row -->
+          <div class="hl-trust-row">
+            <div class="hl-trust-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#10b981"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" fill="none" stroke="#10b981" stroke-width="2"/></svg>
+              Verified Donors
+            </div>
+            <div class="hl-trust-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              24/7 Available
+            </div>
+            <div class="hl-trust-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              100% Free
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Illustration card -->
+        <div class="hl-hero-visual">
+          <div class="hl-vis-card">
+            <div class="hl-vis-header">
+              <div class="hl-vis-avatar">L</div>
+              <div>
+                <div class="hl-vis-name">Lisa Thompson</div>
+                <div class="hl-vis-meta">Last donation: Dec 2025</div>
+              </div>
+              <span class="hl-vis-badge">AB−</span>
+            </div>
+            <div class="hl-vis-stats">
+              <div class="hl-vis-stat"><span>4</span>Donations</div>
+              <div class="hl-vis-stat"><span>12</span>Lives Saved</div>
+              <div class="hl-vis-stat"><span>🥇</span>Top Donor</div>
+            </div>
+            <div class="hl-vis-status">
+              <span class="hl-vis-dot"></span> Available to donate
+            </div>
+          </div>
+
+          <!-- Floating mini cards -->
+          <div class="hl-mini-card hl-mc-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" fill="none" stroke="#10b981" stroke-width="2"/></svg>
+            <div>
+              <div class="hl-mc-title">Request Fulfilled</div>
+              <div class="hl-mc-sub">O+ · 2 units</div>
+            </div>
+          </div>
+          <div class="hl-mini-card hl-mc-2">
+            <div class="hl-mc-icon">🩸</div>
+            <div>
+              <div class="hl-mc-title">New Donor</div>
+              <div class="hl-mc-sub">Just registered</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wave bottom -->
+      <div class="hl-hero-wave">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="#f9fafb"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         STATS BAR
+    ═══════════════════════════════════════ -->
+    <section class="hl-stats">
+      <div class="container">
+        <div class="hl-stats-grid">
+          <div class="hl-stat">
+            <div class="hl-stat-num" style="--c:#dc2626">15+</div>
+            <div class="hl-stat-icon">🩸</div>
+            <div class="hl-stat-label">Registered Donors</div>
+          </div>
+          <div class="hl-stat">
+            <div class="hl-stat-num" style="--c:#7c3aed">50+</div>
+            <div class="hl-stat-icon">💗</div>
+            <div class="hl-stat-label">Lives Saved</div>
+          </div>
+          <div class="hl-stat">
+            <div class="hl-stat-num" style="--c:#0d9488">8</div>
+            <div class="hl-stat-icon">🧬</div>
+            <div class="hl-stat-label">Blood Groups</div>
+          </div>
+          <div class="hl-stat">
+            <div class="hl-stat-num" style="--c:#d97706">24/7</div>
+            <div class="hl-stat-icon">⏱️</div>
+            <div class="hl-stat-label">Support Available</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         HOW IT WORKS
+    ═══════════════════════════════════════ -->
+    <section class="hl-section hl-how">
+      <div class="container">
+        <div class="hl-section-head">
+          <div class="hl-eyebrow">Simple Process</div>
+          <h2>How It Works</h2>
+          <p>Getting started takes less than 5 minutes. Help save a life in three easy steps.</p>
+        </div>
+        <div class="hl-steps">
+          <div class="hl-step">
+            <div class="hl-step-num">01</div>
+            <div class="hl-step-icon">📋</div>
+            <h3>Register</h3>
+            <p>Fill in your basic details and blood group to join our donor network.</p>
+            <a href="register.html" class="hl-step-link">Register now →</a>
+          </div>
+          <div class="hl-step-arrow">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+          <div class="hl-step">
+            <div class="hl-step-num">02</div>
+            <div class="hl-step-icon">🔍</div>
+            <h3>Get Matched</h3>
+            <p>Patients in need find you based on blood type and location availability.</p>
+            <a href="#search" class="hl-step-link">Search donors →</a>
+          </div>
+          <div class="hl-step-arrow">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+          <div class="hl-step">
+            <div class="hl-step-num">03</div>
+            <div class="hl-step-icon">❤️</div>
+            <h3>Save a Life</h3>
+            <p>Donate blood and directly impact up to 3 lives with a single donation.</p>
+            <a href="request.html" class="hl-step-link">Request blood →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         BLOOD TYPES
+    ═══════════════════════════════════════ -->
+    <section class="hl-section hl-blood-types-section">
+      <div class="container">
+        <div class="hl-section-head">
+          <div class="hl-eyebrow">All Groups Covered</div>
+          <h2>Blood Types We Cover</h2>
+          <p>We have registered donors for every blood type. Find the right match quickly.</p>
+        </div>
+        <div class="hl-blood-grid">
+          <div class="hl-blood-card hl-b1"><span>A+</span><small>Common</small></div>
+          <div class="hl-blood-card hl-b2"><span>A−</span><small>Rare</small></div>
+          <div class="hl-blood-card hl-b1"><span>B+</span><small>Common</small></div>
+          <div class="hl-blood-card hl-b2"><span>B−</span><small>Rare</small></div>
+          <div class="hl-blood-card hl-b3"><span>O+</span><small>Most Common</small></div>
+          <div class="hl-blood-card hl-b2"><span>O−</span><small>Universal</small></div>
+          <div class="hl-blood-card hl-b1"><span>AB+</span><small>Universal Recipient</small></div>
+          <div class="hl-blood-card hl-b2"><span>AB−</span><small>Rarest</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         TOP DONORS
+    ═══════════════════════════════════════ -->
+    <section class="hl-section hl-heroes-section">
+      <div class="hl-heroes-bg"></div>
+      <div class="container" style="position:relative;z-index:1">
+        <div class="hl-section-head hl-section-head--light">
+          <div class="hl-eyebrow hl-eyebrow--light">Community Champions</div>
+          <h2 style="color:#fff">🏆 Our Life-Saving Heroes</h2>
+          <p style="color:rgba(255,255,255,.75)">Celebrating our most dedicated donors who've made extraordinary contributions</p>
+        </div>
+        <div id="top-donors-container" class="top-donors-grid">
+          <p style="text-align:center;color:rgba(255,255,255,.7);grid-column:1/-1">Loading top donors…</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         SEARCH / FIND DONORS
+    ═══════════════════════════════════════ -->
+    <section id="search" class="hl-section hl-search-section">
+      <div class="container">
+        <div class="hl-section-head">
+          <div class="hl-eyebrow">Donor Directory</div>
+          <h2>Find a Blood Donor</h2>
+          <p>Search available donors by blood group and location. Results update instantly.</p>
+        </div>
+
+        <div class="hl-search-box">
+          <div class="hl-search-field">
+            <label>Blood Group</label>
+            <select id="search-blood-group">
+              <option value="">All Blood Groups</option>
+              <option value="A+">A+</option>
+              <option value="A-">A−</option>
+              <option value="B+">B+</option>
+              <option value="B-">B−</option>
+              <option value="O+">O+</option>
+              <option value="O-">O−</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB−</option>
+            </select>
+          </div>
+          <div class="hl-search-field hl-search-field--grow">
+            <label>Location</label>
+            <input type="text" id="search-location" placeholder="City, state or address…">
+          </div>
+          <button id="search-btn" class="hl-search-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Search
+          </button>
+        </div>
+
+        <div id="donor-results" class="donor-grid"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         WHY DONATE
+    ═══════════════════════════════════════ -->
+    <section class="hl-section hl-why-section">
+      <div class="container">
+        <div class="hl-section-head">
+          <div class="hl-eyebrow">Make an Impact</div>
+          <h2>Why Donate Blood?</h2>
+          <p>Blood donation is one of the most impactful things you can do for your community.</p>
+        </div>
+        <div class="hl-why-grid">
+          <div class="hl-why-card">
+            <div class="hl-why-icon" style="background:#fef2f2;color:#dc2626">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.746 4.068 2 6.5 2 8.572 2 10.5 3 12 5c1.5-2 3.428-3 5.5-3C19.932 2 23 3.746 23 7.191c0 4.105-5.37 8.863-11 14.402z"/></svg>
+            </div>
+            <h3>Save Multiple Lives</h3>
+            <p>A single donation can be separated into components — red cells, plasma, platelets — saving up to 3 different patients.</p>
+          </div>
+          <div class="hl-why-card">
+            <div class="hl-why-icon" style="background:#eff6ff;color:#2563eb">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <h3>Health Benefits</h3>
+            <p>Regular donation reduces iron overload risk, stimulates blood cell production and may lower the risk of heart disease.</p>
+          </div>
+          <div class="hl-why-card">
+            <div class="hl-why-icon" style="background:#f0fdf4;color:#16a34a">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h3>Build Community</h3>
+            <p>Blood donation connects communities. Your generosity creates a network of care that everyone can rely on in emergencies.</p>
+          </div>
+          <div class="hl-why-card">
+            <div class="hl-why-icon" style="background:#fefce8;color:#ca8a04">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3>Always Needed</h3>
+            <p>Every 2 seconds someone needs blood. Hospitals always need fresh supply — there is no substitute for donated human blood.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         CTA BANNER
+    ═══════════════════════════════════════ -->
+    <section class="hl-cta">
+      <div class="hl-cta-bg"></div>
+      <div class="container hl-cta-inner">
+        <div class="hl-cta-text">
+          <h2>Ready to Save a Life?</h2>
+          <p>Registration takes less than 3 minutes. Your blood can be the difference between life and death for someone today.</p>
+        </div>
+        <div class="hl-cta-actions">
+          <a href="register.html" class="hl-btn-hero-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.746 4.068 2 6.5 2 8.572 2 10.5 3 12 5c1.5-2 3.428-3 5.5-3C19.932 2 23 3.746 23 7.191c0 4.105-5.37 8.863-11 14.402z"/></svg>
+            Register as Donor
+          </a>
+          <a href="request.html" class="hl-btn-hero-secondary">Request Blood</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════ -->
+  <footer class="hl-footer">
+    <div class="container">
+      <div class="hl-footer-grid">
+
+        <!-- Brand -->
+        <div class="hl-footer-brand">
+          <a href="index.html" class="logo" style="color:#fff;margin-bottom:.75rem;display:inline-flex">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#f87171"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.746 4.068 2 6.5 2 8.572 2 10.5 3 12 5c1.5-2 3.428-3 5.5-3C19.932 2 23 3.746 23 7.191c0 4.105-5.37 8.863-11 14.402z"/></svg>
+            BloodLife
+          </a>
+          <p>Connecting blood donors with those who need it most. Saving lives, one donation at a time.</p>
+          <div class="hl-footer-badges">
+            <span>🔒 Secure</span>
+            <span>✅ Verified</span>
+            <span>❤️ Free</span>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="hl-footer-col">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="signup.html">Become a Donor</a></li>
+            <li><a href="request.html">Request Blood</a></li>
+            <li><a href="login.html">Login</a></li>
+          </ul>
+        </div>
+
+        <!-- Blood Groups -->
+        <div class="hl-footer-col">
+          <h4>Blood Groups</h4>
+          <ul>
+            <li><a href="#search">A+ · A−</a></li>
+            <li><a href="#search">B+ · B−</a></li>
+            <li><a href="#search">O+ · O−</a></li>
+            <li><a href="#search">AB+ · AB−</a></li>
+          </ul>
+        </div>
+
+        <!-- Emergency -->
+        <div class="hl-footer-col">
+          <h4>Emergency</h4>
+          <div class="hl-footer-emergency">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.05 1.17a2 2 0 012-2.18h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 6a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 13h-.08z"/></svg>
+            <div>
+              <div class="hl-footer-emergency-title">Need Blood Urgently?</div>
+              <a href="request.html" class="hl-footer-emergency-link">Submit Emergency Request →</a>
+            </div>
+          </div>
+          <p style="font-size:.8rem;color:rgba(255,255,255,.4);margin-top:1rem;">Available 24 hours a day, 7 days a week for urgent requests.</p>
+        </div>
+
+      </div>
+
+      <div class="hl-footer-bottom">
+        <p>© 2026 BloodLife. All rights reserved. Made with ❤️ for humanity.</p>
+        <p>Every donation matters · Every life counts</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/donor.js?v=4"></script>
+  <script>
+    // ── Nav auth state ──────────────────────────────────
+    (function () {
+      const token = localStorage.getItem('donor_token');
+      const info  = JSON.parse(localStorage.getItem('donor_info') || 'null');
+
+      if (token && info) {
+        document.getElementById('nav-auth-links').style.display  = 'none';
+        document.getElementById('nav-signup-link').style.display = 'none';
+        document.getElementById('nav-profile-link').style.display = 'list-item';
+        document.getElementById('nav-logout-link').style.display  = 'list-item';
+
+        document.getElementById('nav-donor-name').textContent = info.name || 'Profile';
+
+        // Fetch latest profile picture
+        fetch('http://localhost:5000/api/donor-auth/profile', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(r => r.json())
+        .then(data => {
+          const pic = document.getElementById('nav-profile-pic');
+          if (data.success && data.data.profile_picture) {
+            pic.src = data.data.profile_picture;
+          } else {
+            pic.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(info.name || 'D')}&background=ff4757&color=fff&size=30`;
+          }
+        })
+        .catch(() => {
+          document.getElementById('nav-profile-pic').src =
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(info.name || 'D')}&background=ff4757&color=fff&size=30`;
+        });
+      }
+    })();
+
+    function navLogout() {
+      localStorage.removeItem('donor_token');
+      localStorage.removeItem('donor_info');
+      window.location.reload();
+    }
+    // ────────────────────────────────────────────────────
+
+    // Hamburger menu
+    document.getElementById('hamburger').addEventListener('click', function () {
+      const h = document.getElementById('main-header');
+      const open = h.classList.toggle('nav-open');
+      this.setAttribute('aria-expanded', open);
+    });
+
+    // Scroll: add shadow to nav
+    window.addEventListener('scroll', () => {
+      document.getElementById('main-header').classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // Animate stat numbers on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('.hl-stat-num').forEach(el => {
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = 'statPop .5s cubic-bezier(.175,.885,.32,1.275) forwards';
+          });
+        }
+      });
+    }, { threshold: .5 });
+    const statsEl = document.querySelector('.hl-stats');
+    if (statsEl) observer.observe(statsEl);
+  </script>
+</body>
+</html>

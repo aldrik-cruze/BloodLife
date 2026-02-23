@@ -111,27 +111,30 @@ router.post('/', registerLimiter, validate(validationRules.bloodRequest), asyncH
         const compatibleGroups = getCompatibleBloodGroups(blood_group);
         if (compatibleGroups.length > 0) {
             const placeholders = compatibleGroups.map(() => '?').join(',');
-            const donorQuery = `SELECT email, fullname FROM donors WHERE blood_group IN (${placeholders}) AND availability = 1`;
+            // Only notify donors who have real registered accounts
+            const donorQuery = `
+                SELECT d.email, d.fullname FROM donors d
+                INNER JOIN donor_accounts da ON da.donor_id = d.id
+                WHERE d.blood_group IN (${placeholders}) AND d.availability = 1`;
 
             db.query(donorQuery, compatibleGroups, async (err, donors) => {
-                if (!err && donors.length > 0) {
-                    const requestDetails = {
-                        patient_name,
-                        blood_group,
-                        units,
-                        hospital,
-                        phone,
-                        needed_date
-                    };
-
-                    // Send notifications to all compatible donors (don't wait)
-                    donors.forEach(donor => {
-                        notificationService.notifyDonorMatch(donor.email, donor.fullname, requestDetails)
-                            .catch(e => logger.error(`Notification failed for ${donor.email}:`, e));
-                    });
-
-                    logger.info(`Notified ${donors.length} compatible donors for request ID ${result.insertId}`);
+                if (err) {
+                    logger.error('Donor query failed for notifications:', err.message);
+                    return;
                 }
+                if (donors.length === 0) {
+                    logger.info(`No registered donors found for blood group ${blood_group}`);
+                    return;
+                }
+
+                const requestDetails = { patient_name, blood_group, units, hospital, phone, needed_date, is_emergency: isEmergency };
+
+                donors.forEach(donor => {
+                    notificationService.notifyDonorMatch(donor.email, donor.fullname, requestDetails)
+                        .catch(e => logger.error(`Notification failed for ${donor.email}: ${e.message}`));
+                });
+
+                logger.info(`Notified ${donors.length} registered donors for request ID ${result.insertId}`);
             });
         }
 

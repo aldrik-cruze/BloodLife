@@ -132,6 +132,8 @@ async function runMigrations(connection) {
         
         // Check and add columns to donors
         `ALTER TABLE donors ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`.replace('IF NOT EXISTS', ''),
+        `ALTER TABLE donors ADD COLUMN IF NOT EXISTS availability TINYINT(1) DEFAULT 1`.replace('IF NOT EXISTS', ''),
+        `ALTER TABLE donors ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(255) DEFAULT NULL`.replace('IF NOT EXISTS', ''),
         
         // Check and add columns to blood_requests
         `ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`.replace('IF NOT EXISTS', ''),
@@ -185,6 +187,8 @@ async function runMigrations(connection) {
         `CREATE INDEX idx_requests_blood_group ON blood_requests(blood_group)`,
         `CREATE INDEX idx_requests_status ON blood_requests(status)`,
         `CREATE INDEX idx_requests_emergency ON blood_requests(is_emergency)`,
+        `CREATE INDEX idx_donations_donor_id ON donations(donor_id)`,
+        `CREATE INDEX idx_donations_date ON donations(donation_date)`,
         
         // Update admin role
         `UPDATE admins SET role = 'super_admin' WHERE username = 'admin' AND role = 'admin'`

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — BloodLife</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/toast.js"></script>
+<body>
+
+  <!-- ─── Navigation ─── -->
+  <header id="main-header">
+    <nav>
+      <a href="index.html" class="logo">❤️ BloodLife</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="request.html">Request Blood</a></li>
+        <li><a href="login.html">Login</a></li>
+        <li><a href="signup.html" class="nav-cta active">Sign Up</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container form-page">
+      <div class="form-card" style="max-width:680px;">
+
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <div class="auth-icon">❤️</div>
+          <h2 class="form-card-title">Create Your Account</h2>
+          <p style="color:var(--text-muted);font-size:.9rem;">Join BloodLife and start saving lives</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="signup-form" novalidate>
+
+          <!-- Full Name -->
+          <div class="form-group">
+            <label class="form-label" for="fullname">Full Name *</label>
+            <input class="form-input" type="text" id="fullname" required placeholder="e.g. Jane Smith">
+          </div>
+
+          <!-- Age + Gender -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="age">Age *</label>
+              <input class="form-input" type="number" id="age" min="18" max="65" required placeholder="18–65">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="gender">Gender *</label>
+              <select class="form-input form-select" id="gender" required>
+                <option value="">Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Blood Group + Phone -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="blood_group">Blood Group *</label>
+              <select class="form-input form-select" id="blood_group" required>
+                <option value="">Select blood group</option>
+                <option value="A+">A+</option>
+                <option value="A-">A−</option>
+                <option value="B+">B+</option>
+                <option value="B-">B−</option>
+                <option value="O+">O+</option>
+                <option value="O-">O−</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB−</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone Number *</label>
+              <input class="form-input" type="tel" id="phone" required placeholder="+1 234 567 8900">
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address *</label>
+            <input class="form-input" type="email" id="email" required placeholder="your.email@example.com">
+          </div>
+
+          <!-- Address -->
+          <div class="form-group">
+            <label class="form-label" for="address">Address *</label>
+            <textarea class="form-input form-textarea" id="address" required placeholder="Your full address"></textarea>
+          </div>
+
+          <!-- Password -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="password">Password *</label>
+              <div class="pw-wrap">
+                <input class="form-input" type="password" id="password" required
+                       placeholder="Min. 8 chars" autocomplete="new-password">
+                <button type="button" class="pw-toggle" onclick="togglePw('password',this)" title="Show/hide">👁️</button>
+              </div>
+              <small style="color:var(--text-muted);font-size:.78rem;margin-top:.3rem;display:block;">
+                Must include uppercase, lowercase, number & special character (@$!%*?&#)
+              </small>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="confirm_password">Confirm Password *</label>
+              <div class="pw-wrap">
+                <input class="form-input" type="password" id="confirm_password" required
+                       placeholder="Repeat password" autocomplete="new-password">
+                <button type="button" class="pw-toggle" onclick="togglePw('confirm_password',this)" title="Show/hide">👁️</button>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn-primary btn-full" style="margin-top:.5rem;">
+            Create Account
+          </button>
+        </form>
+
+        <div class="auth-links" style="margin-top:1.25rem;text-align:center;">
+          <p>Already have an account? <a href="login.html">Login</a></p>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
+
+    function togglePw(id, btn) {
+      const inp = document.getElementById(id);
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      btn.textContent = show ? '🙈' : '👁️';
+    }
+
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fullname        = document.getElementById('fullname').value.trim();
+      const age             = parseInt(document.getElementById('age').value);
+      const gender          = document.getElementById('gender').value;
+      const blood_group     = document.getElementById('blood_group').value;
+      const phone           = document.getElementById('phone').value.trim();
+      const email           = document.getElementById('email').value.trim();
+      const address         = document.getElementById('address').value.trim();
+      const password        = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm_password').value;
+      const btn             = document.getElementById('submit-btn');
+
+      if (!fullname || !age || !gender || !blood_group || !phone || !email || !address || !password) {
+        return showToast('Please fill in all required fields.', 'error');
+      }
+      if (password !== confirmPassword) {
+        return showToast('Passwords do not match.', 'error');
+      }
+      if (password.length < 8) {
+        return showToast('Password must be at least 8 characters.', 'error');
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Creating account…';
+
+      try {
+        const donorRes  = await fetch(`${API_BASE}/donors/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fullname, age, gender, blood_group, phone, email, address })
+        });
+        const donorData = await donorRes.json();
+        if (!donorData.success) {
+          return showToast(donorData.message || donorData.error || 'Registration failed. Email may already exist.', 'error');
+        }
+
+        const accountRes  = await fetch(`${API_BASE}/donor-auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ donor_id: donorData.id, email, password })
+        });
+        const accountData = await accountRes.json();
+        if (!accountData.success) {
+          return showToast(accountData.message || accountData.error || 'Account creation failed.', 'error');
+        }
+
+        showToast('Account created! Redirecting to login…', 'success');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+
+      } catch (err) {
+        showToast('Network error. Please try again.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    });
+
+    document.getElementById('hamburger').addEventListener('click', function () {
+      const h = document.getElementById('main-header');
+      const open = h.classList.toggle('nav-open');
+      this.setAttribute('aria-expanded', open);
+    });
+  </script>
+
+  <footer style="background:#111827;color:rgba(255,255,255,.55);text-align:center;padding:1.5rem 1rem;font-size:.82rem;margin-top:auto;">
+    <p style="margin:0;">© 2026 <a href="index.html" style="color:#f87171;font-weight:600;">BloodLife</a> · Made with ❤️ for humanity · <a href="request.html" style="color:rgba(255,255,255,.6);">Emergency Request</a></p>
+  </footer>
+
+</body>
+</html>

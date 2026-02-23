@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile — BloodLife</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ─── Navigation ─── -->
+  <header id="main-header">
+    <nav>
+      <a href="index.html" class="logo">❤️ BloodLife</a>
+
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="donor-dashboard.html">Dashboard</a></li>
+        <li><a href="#" onclick="logout(); return false;">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container form-page">
+
+      <a href="donor-dashboard.html" class="back-link">← Back to Dashboard</a>
+
+      <div class="form-card" style="max-width:700px;">
+
+        <h2 class="form-card-title">✏️ Edit Profile</h2>
+
+        <!-- Alert -->
+        <div id="alert" class="alert"></div>
+
+        <!-- Profile Picture -->
+        <div class="form-group" style="text-align:center; margin-bottom:1.5rem;">
+          <div style="position:relative; display:inline-block;">
+            <img id="profile-pic-preview"
+                 src="https://res.cloudinary.com/dwdnftftz/image/upload/v1/blood-donation/profiles/default-avatar.png"
+                 onerror="this.src='https://ui-avatars.com/api/?name=Donor&background=ff4757&color=fff&size=120'"
+                 alt="Profile Picture"
+                 style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #ff4757;">
+            <label for="profile-pic-input"
+                   style="position:absolute;bottom:0;right:0;background:#ff4757;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;">
+              📷
+            </label>
+          </div>
+          <input type="file" id="profile-pic-input" accept="image/jpeg,image/png,image/webp" style="display:none;">
+          <div id="pic-status" style="font-size:0.8rem;color:var(--text-muted);margin-top:0.4rem;"></div>
+        </div>
+
+        <form id="edit-form" novalidate>
+
+          <!-- Full Name -->
+          <div class="form-group">
+            <label class="form-label" for="fullname">Full Name *</label>
+            <input class="form-input" type="text" id="fullname" required>
+          </div>
+
+          <!-- Age + Gender -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="age">Age *</label>
+              <input class="form-input" type="number" id="age" min="18" max="65" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="gender">Gender *</label>
+              <select class="form-input form-select" id="gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Blood Group + Phone -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="blood-group">Blood Group</label>
+              <input class="form-input readonly" type="text" id="blood-group" readonly>
+              <span class="form-helper">Blood group cannot be changed</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone Number *</label>
+              <input class="form-input" type="tel" id="phone" required>
+            </div>
+          </div>
+
+          <!-- Email (readonly) -->
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input class="form-input readonly" type="email" id="email" readonly>
+            <span class="form-helper">Email cannot be changed</span>
+          </div>
+
+          <!-- Address -->
+          <div class="form-group">
+            <label class="form-label" for="address">Address *</label>
+            <textarea class="form-input form-textarea" id="address" required></textarea>
+          </div>
+
+          <!-- Buttons -->
+          <div class="btn-group">
+            <button type="button" class="btn-ghost" onclick="location.href='donor-dashboard.html'">
+              Cancel
+            </button>
+            <button type="submit" class="btn-primary">
+              Save Changes
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div><!-- /.container -->
+  </main>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
+    const token = localStorage.getItem('donor_token');
+
+    if (!token) {
+        window.location.href = 'login.html';
+    }
+
+    function logout() {
+        localStorage.removeItem('donor_token');
+        localStorage.removeItem('donor_info');
+        window.location.href = 'login.html';
+    }
+
+    async function fetchWithAuth(url, options = {}) {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                ...options.headers,
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.status === 401 || response.status === 403) {
+            logout();
+        }
+        
+        return response.json();
+    }
+
+    async function loadProfile() {
+        try {
+            const data = await fetchWithAuth(`${API_BASE}/donor-auth/profile`);
+            
+            if (data.success) {
+                const profile = data.data;
+                document.getElementById('fullname').value = profile.fullname;
+                document.getElementById('age').value = profile.age;
+                document.getElementById('gender').value = profile.gender;
+                document.getElementById('blood-group').value = profile.blood_group;
+                document.getElementById('phone').value = profile.phone;
+                document.getElementById('email').value = profile.account_email;
+                document.getElementById('address').value = profile.address;
+
+                if (profile.profile_picture) {
+                    document.getElementById('profile-pic-preview').src = profile.profile_picture;
+                } else {
+                    document.getElementById('profile-pic-preview').src =
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.fullname)}&background=ff4757&color=fff&size=120`;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+            showAlert('Error loading profile', 'error');
+        }
+    }
+
+    // Profile picture preview & upload
+    document.getElementById('profile-pic-input').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Show local preview immediately
+        document.getElementById('profile-pic-preview').src = URL.createObjectURL(file);
+        document.getElementById('pic-status').textContent = 'Uploading…';
+
+        const formData = new FormData();
+        formData.append('profile_picture', file);
+
+        try {
+            const response = await fetch(`${API_BASE}/donor-auth/profile/picture`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('profile-pic-preview').src = data.profile_picture;
+                document.getElementById('pic-status').textContent = '✅ Photo updated';
+            } else {
+                document.getElementById('pic-status').textContent = '❌ ' + (data.message || 'Upload failed');
+            }
+        } catch (err) {
+            document.getElementById('pic-status').textContent = '❌ Network error';
+        }
+    });
+
+    function showAlert(message, type) {
+        const alert = document.getElementById('alert');
+        alert.className = `alert alert-${type}`;
+        alert.textContent = message;
+        alert.style.display = 'block';
+        
+        setTimeout(() => {
+            alert.style.display = 'none';
+        }, 5000);
+    }
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = {
+            fullname: document.getElementById('fullname').value,
+            age: parseInt(document.getElementById('age').value),
+            gender: document.getElementById('gender').value,
+            phone: document.getElementById('phone').value,
+            address: document.getElementById('address').value
+        };
+
+        try {
+            const data = await fetchWithAuth(`${API_BASE}/donor-auth/profile`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (data.success) {
+                showAlert('Profile updated successfully!', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'donor-dashboard.html';
+                }, 1500);
+            } else {
+                showAlert(data.message || 'Update failed', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            showAlert('Network error. Please try again.', 'error');
+        }
+    });
+
+    // Load profile on page load
+    loadProfile();
+  </script>
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    hamburger.addEventListener('click', function () {
+      const header = document.getElementById('main-header');
+      const open = header.classList.toggle('nav-open');
+      this.setAttribute('aria-expanded', open);
+    });
+  </script>
+
+  <footer style="background:#111827;color:rgba(255,255,255,.55);text-align:center;padding:1.5rem 1rem;font-size:.82rem;margin-top:auto;">
+    <p style="margin:0;">© 2026 <a href="index.html" style="color:#f87171;font-weight:600;">BloodLife</a> · Made with ❤️ for humanity · <a href="request.html" style="color:rgba(255,255,255,.6);">Emergency Request</a></p>
+  </footer>
+
+</body>
+</html>

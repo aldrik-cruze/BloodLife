@@ -11,7 +11,13 @@
     "seed": "node seed-demo-data.js",
     "build": "echo 'No build needed'"
   },
-  "keywords": ["blood-donation", "healthcare", "nodejs", "express", "mysql"],
+  "keywords": [
+    "blood-donation",
+    "healthcare",
+    "nodejs",
+    "express",
+    "mysql"
+  ],
   "author": "aldrik-cruze",
   "license": "MIT",
   "type": "commonjs",
@@ -22,6 +28,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.2",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
@@ -30,6 +37,8 @@
     "helmet": "^8.1.0",
     "jest": "^30.2.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
     "mysql2": "^3.17.2",
     "nodemailer": "^8.0.1",
     "supertest": "^7.2.2",

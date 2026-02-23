@@ -8,6 +8,8 @@ const { asyncHandler, AppError } = require('../middleware/errorHandler');
 const { validate, validationRules, passwordRules } = require('../middleware/validator');
 const { authLimiter, registerLimiter } = require('../middleware/rateLimiter');
 const { body } = require('express-validator');
+const { uploadProfilePicture } = require('../utils/upload');
+const notificationService = require('../utils/notificationService');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
@@ -36,7 +38,7 @@ router.post('/register', registerLimiter, validate([
     const { donor_id, email, password } = req.body;
 
     // Check if donor exists
-    const donorQuery = 'SELECT id, email FROM donors WHERE id = ? AND email = ?';
+    const donorQuery = 'SELECT id, email, fullname FROM donors WHERE id = ? AND email = ?';
     db.query(donorQuery, [donor_id, email], async (err, donors) => {
         if (err) throw new AppError('Database error', 500);
         if (donors.length === 0) throw new AppError('Donor not found. Please register as donor first.', 404);
@@ -55,6 +57,11 @@ router.post('/register', registerLimiter, validate([
                 if (err) throw new AppError('Error creating account', 500);
 
                 logger.info(`Donor account created: ${email}`);
+
+                // Send welcome email (non-blocking)
+                notificationService.sendWelcomeEmail(email, donors[0].fullname || 'Donor')
+                    .catch(e => logger.warn('Welcome email failed: ' + e.message));
+
                 res.json({
                     success: true,
                     message: 'Account created successfully. Please login.',
@@ -189,6 +196,30 @@ router.get('/donations', authenticateDonor, asyncHandler(async (req, res) => {
         res.json({
             success: true,
             data: results
+        });
+    });
+}));
+
+// Upload Profile Picture
+router.post('/profile/picture', authenticateDonor, (req, res, next) => {
+    uploadProfilePicture(req, res, (err) => {
+        if (err) return next(err);
+        next();
+    });
+}, asyncHandler(async (req, res) => {
+    if (!req.file) throw new AppError('No image file provided', 400);
+
+    const profilePicturePath = req.file.path; // Cloudinary URL
+    const query = 'UPDATE donors SET profile_picture = ? WHERE id = ?';
+
+    db.query(query, [profilePicturePath, req.user.donor_id], (err, result) => {
+        if (err) throw new AppError('Database error', 500);
+
+        logger.info(`Profile picture updated: donor ID ${req.user.donor_id}`);
+        res.json({
+            success: true,
+            message: 'Profile picture updated successfully',
+            profile_picture: profilePicturePath
         });
     });
 }));

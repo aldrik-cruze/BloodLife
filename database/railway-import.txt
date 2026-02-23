@@ -1,0 +1,59 @@
+========================================
+RAILWAY DATABASE IMPORT INSTRUCTIONS
+========================================
+
+OPTION A: Copy database.sql to Railway Query Editor
+----------------------------------------------------
+1. Click MySQL service in Railway
+2. Click "Data" tab
+3. Copy entire database.sql file content
+4. Paste into Query editor
+5. Click Execute
+
+OPTION B: Import from your computer
+------------------------------------
+1. Get connection string from Railway MySQL service → Connect tab
+   Example: mysql://user:pass@containers-us-west-123.railway.app:1234/railway
+
+2. Open PowerShell in D:\Projects\blood
+
+3. Run this command (replace with YOUR connection details):
+   mysql -h containers-us-west-123.railway.app -P 1234 -u root -p railway < database.sql
+
+4. Enter password when prompted
+
+5. Then import demo data:
+   mysql -h containers-us-west-123.railway.app -P 1234 -u root -p railway < seed-demo-data.sql
+
+
+OPTION C: Using Railway CLI (Advanced)
+---------------------------------------
+1. Install Railway CLI: npm i -g @railway/cli
+2. Run: railway login
+3. Run: railway link (select your project)
+4. Run: railway run mysql -u root -p < database.sql
+
+
+ADMIN LOGIN AFTER IMPORT:
+--------------------------
+Username: admin
+Password: Admin@12345
+
+DONOR LOGIN (8 demo accounts):
+-------------------------------
+Email: john.anderson@email.com
+Password: Demo@12345
+
+(Same password for all 8 demo donor accounts)
+
+
+VERIFY DATABASE:
+----------------
+After import, check if data exists:
+1. Go to Railway MySQL → Data tab
+2. Run query: SELECT COUNT(*) FROM donors;
+3. Should show: 15 donors
+4. Run query: SELECT * FROM admins;
+5. Should show: admin user
+
+========================================

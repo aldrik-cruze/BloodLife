@@ -54,7 +54,7 @@ app.use((req, res, next) => {
 app.use('/api/', apiLimiter);
 
 // Static files
-app.use(express.static(path.join(__dirname, '/')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize database
 require('./config/database');

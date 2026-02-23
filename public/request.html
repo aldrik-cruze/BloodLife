@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request Blood — BloodLife</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ─── Navigation ─── -->
+  <header id="main-header">
+    <nav>
+      <a href="index.html" class="logo">❤️ BloodLife</a>
+
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="request.html" class="active">Request Blood</a></li>
+        <li><a href="login.html">Login</a></li>
+        <li><a href="signup.html" class="nav-cta">Sign Up</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ─── Page Header ─── -->
+  <div class="page-header">
+    <div class="container">
+      <h1>🏥 Request Blood</h1>
+      <p>Submit an urgent blood request and we'll connect you with available donors</p>
+    </div>
+  </div>
+
+  <!-- ─── Form ─── -->
+  <main class="form-page">
+    <div class="form-card">
+
+      <!-- Urgency banner -->
+      <div class="urgency-banner">
+        <span class="urgency-icon">🚨</span>
+        <span>For life-threatening emergencies, please also contact your local hospital blood bank directly alongside submitting this form.</span>
+      </div>
+
+      <h2 class="form-card-title">Request Details</h2>
+
+      <form id="request-form" novalidate>
+
+        <!-- Patient Name -->
+        <div class="form-group">
+          <label class="form-label" for="patient-name">Patient Name *</label>
+          <input class="form-input" type="text" id="patient-name" required placeholder="Full name of the patient">
+        </div>
+
+        <!-- Blood Group + Units -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="blood-group">Blood Group Needed *</label>
+            <select class="form-input form-select" id="blood-group" required>
+              <option value="">Select blood group</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="unit">Units (Bags) *</label>
+            <input class="form-input" type="number" id="unit" min="1" required placeholder="e.g. 2">
+          </div>
+        </div>
+
+        <!-- Hospital -->
+        <div class="form-group">
+          <label class="form-label" for="hospital">Hospital / Location *</label>
+          <input class="form-input" type="text" id="hospital" required placeholder="Hospital name and city">
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+          <label class="form-label" for="phone">Contact Number *</label>
+          <input class="form-input" type="tel" id="phone" required placeholder="+1 555 000 0000">
+        </div>
+
+        <!-- Date Needed -->
+        <div class="form-group">
+          <label class="form-label" for="needed-date">Date Needed *</label>
+          <input class="form-input" type="date" id="needed-date" required>
+        </div>
+
+        <button type="submit" class="btn-primary btn-full" style="margin-top:.5rem;">Submit Request</button>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- ─── Footer ─── -->
+  <footer>
+    <div class="container">
+      <p>© 2026 BloodLife. Saving lives, one donation at a time. 💝</p>
+    </div>
+  </footer>
+
+  <script src="js/request.js"></script>
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    hamburger.addEventListener('click', function () {
+      const header = document.getElementById('main-header');
+      const open = header.classList.toggle('nav-open');
+      this.setAttribute('aria-expanded', open);
+    });
+  </script>
+
+  <footer style="background:#111827;color:rgba(255,255,255,.55);text-align:center;padding:1.5rem 1rem;font-size:.82rem;margin-top:auto;">
+    <p style="margin:0;">© 2026 <a href="index.html" style="color:#f87171;font-weight:600;">BloodLife</a> · Made with ❤️ for humanity · <a href="request.html" style="color:rgba(255,255,255,.6);">Emergency Request</a></p>
+  </footer>
+
+</body>
+</html>

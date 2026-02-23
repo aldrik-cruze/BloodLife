@@ -20,25 +20,8 @@ const apiLimiter = rateLimit({
     }
 });
 
-// Strict limiter for authentication endpoints
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: parseInt(process.env.LOGIN_RATE_LIMIT_MAX) || 5,
-    message: {
-        success: false,
-        message: 'Too many login attempts, please try again after 15 minutes.'
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
-    skipSuccessfulRequests: true,
-    handler: (req, res) => {
-        logger.warn(`Auth rate limit exceeded for IP: ${req.ip}`);
-        res.status(429).json({
-            success: false,
-            message: 'Too many login attempts, please try again after 15 minutes.'
-        });
-    }
-});
+// Auth limiter disabled - no login attempt restrictions
+const authLimiter = (req, res, next) => next();
 
 // Registration limiter
 const registerLimiter = rateLimit({

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — BloodLife</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/toast.js"></script>
+<body>
+
+  <!-- ─── Navigation ─── -->
+  <header id="main-header">
+    <nav>
+      <a href="index.html" class="logo">❤️ BloodLife</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="request.html">Request Blood</a></li>
+        <li><a href="login.html" class="active">Login</a></li>
+        <li><a href="signup.html" class="nav-cta">Sign Up</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="auth-page">
+    <div class="auth-card">
+
+      <div class="auth-icon">🩸</div>
+      <h1 class="auth-title">Welcome Back</h1>
+      <p class="auth-subtitle">Login to your BloodLife account</p>
+
+      <div id="alert" class="alert" style="display:none"></div>
+
+      <form id="login-form" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="identifier">✉️ Email or Username</label>
+          <input class="form-input" type="text" id="identifier" required
+                 placeholder="email@example.com or admin username"
+                 autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">🔒 Password</label>
+          <div class="pw-wrap">
+            <input class="form-input" type="password" id="password" required
+                   placeholder="Enter your password"
+                   autocomplete="current-password">
+            <button type="button" class="pw-toggle" onclick="togglePw('password',this)" title="Show/hide password">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn-primary btn-full" style="margin-top:.25rem;">
+          Login
+        </button>
+      </form>
+
+      <div class="divider">OR</div>
+
+      <div class="auth-links">
+        <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+        <p style="margin-top:.5rem;"><a href="index.html">← Back to Home</a></p>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
+
+    // If already logged in, redirect
+    if (localStorage.getItem('donor_token')) window.location.href = 'donor-dashboard.html';
+    if (localStorage.getItem('admin_session')) window.location.href = 'admin-dashboard.html';
+
+    function togglePw(id, btn) {
+      const inp = document.getElementById(id);
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      btn.textContent = show ? '🙈' : '👁️';
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const identifier = document.getElementById('identifier').value.trim();
+      const password   = document.getElementById('password').value;
+      const btn        = document.getElementById('submit-btn');
+
+      btn.disabled = true;
+      btn.textContent = 'Logging in…';
+
+      const isEmail = identifier.includes('@');
+
+      try {
+        if (isEmail) {
+          const res  = await fetch(`${API_BASE}/donor-auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: identifier, password })
+          });
+          const data = await res.json();
+          if (data.success) {
+            localStorage.setItem('donor_token', data.token);
+            localStorage.setItem('donor_info', JSON.stringify(data.donor));
+            showToast('Login successful! Redirecting…', 'success');
+            setTimeout(() => window.location.href = 'donor-dashboard.html', 1200);
+            return;
+          }
+          showToast(data.message || 'Invalid email or password', 'error');
+        } else {
+          const res  = await fetch(`${API_BASE}/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: identifier, password })
+          });
+          const data = await res.json();
+          if (data.success) {
+            localStorage.setItem('admin_session', 'true');
+            if (data.token) localStorage.setItem('auth_token', data.token);
+            showToast('Admin login successful! Redirecting…', 'success');
+            setTimeout(() => window.location.href = 'admin-dashboard.html', 1200);
+            return;
+          }
+          showToast(data.message || 'Invalid username or password', 'error');
+        }
+      } catch (err) {
+        showToast('Network error. Please try again.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    });
+
+    document.getElementById('hamburger').addEventListener('click', function () {
+      const h = document.getElementById('main-header');
+      const open = h.classList.toggle('nav-open');
+      this.setAttribute('aria-expanded', open);
+    });
+  </script>
+
+  <footer style="background:#111827;color:rgba(255,255,255,.55);text-align:center;padding:1.5rem 1rem;font-size:.82rem;margin-top:auto;">
+    <p style="margin:0;">© 2026 <a href="index.html" style="color:#f87171;font-weight:600;">BloodLife</a> · Made with ❤️ for humanity · <a href="request.html" style="color:rgba(255,255,255,.6);">Emergency Request</a></p>
+  </footer>
+
+</body>
+</html>
