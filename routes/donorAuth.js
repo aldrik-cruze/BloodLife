@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('../config/database');
+const db = require('../config/firebase');
 const logger = require('../utils/logger');
 const { asyncHandler, AppError } = require('../middleware/errorHandler');
 const { validate, validationRules, passwordRules } = require('../middleware/validator');
@@ -14,13 +14,10 @@ const notificationService = require('../utils/notificationService');
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
 
-// Auth Middleware for donors
 function authenticateDonor(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-
     if (!token) return next(new AppError('Authentication required', 401));
-
     try {
         const user = jwt.verify(token, JWT_SECRET);
         if (user.type !== 'donor') return next(new AppError('Donor access only', 403));
@@ -33,33 +30,40 @@ function authenticateDonor(req, res, next) {
 
 // Donor Registration (create account)
 router.post('/register', registerLimiter, validate([
-    body('donor_id').isInt().withMessage('Valid donor ID required'),
+    body('donor_id').notEmpty().withMessage('Valid donor ID required'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
     passwordRules()
 ]), asyncHandler(async (req, res) => {
     const { donor_id, email, password } = req.body;
 
-    const [donors] = await db.query('SELECT id, email, fullname FROM donors WHERE id = ? AND email = ?', [donor_id, email]);
-    if (donors.length === 0) throw new AppError('Donor not found. Please register as donor first.', 404);
+    const donorDoc = await db.collection('donors').doc(donor_id).get();
+    if (!donorDoc.exists || donorDoc.data().email !== email) {
+        throw new AppError('Donor not found. Please register as donor first.', 404);
+    }
 
-    const [accounts] = await db.query('SELECT id FROM donor_accounts WHERE donor_id = ? OR email = ?', [donor_id, email]);
-    if (accounts.length > 0) throw new AppError('Account already exists', 400);
+    const existingSnap = await db.collection('donor_accounts')
+        .where('donor_id', '==', donor_id).limit(1).get();
+    if (!existingSnap.empty) throw new AppError('Account already exists', 400);
+
+    const existingEmailSnap = await db.collection('donor_accounts')
+        .where('email', '==', email).limit(1).get();
+    if (!existingEmailSnap.empty) throw new AppError('Account already exists', 400);
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const [result] = await db.query(
-        'INSERT INTO donor_accounts (donor_id, email, password_hash) VALUES (?, ?, ?)',
-        [donor_id, email, hashedPassword]
-    );
+    const ref = await db.collection('donor_accounts').add({
+        donor_id,
+        email,
+        password_hash: hashedPassword,
+        is_verified: 0,
+        last_login: null,
+        created_at: new Date()
+    });
 
     logger.info(`Donor account created: ${email}`);
-    notificationService.sendWelcomeEmail(email, donors[0].fullname || 'Donor')
+    notificationService.sendWelcomeEmail(email, donorDoc.data().fullname || 'Donor')
         .catch(e => logger.warn('Welcome email failed: ' + e.message));
 
-    res.json({
-        success: true,
-        message: 'Account created successfully. Please login.',
-        id: result.insertId
-    });
+    res.json({ success: true, message: 'Account created successfully. Please login.', id: ref.id });
 }));
 
 // Donor Login
@@ -69,61 +73,54 @@ router.post('/login', authLimiter, validate([
 ]), asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    const query = `
-        SELECT da.*, d.fullname, d.blood_group 
-        FROM donor_accounts da
-        JOIN donors d ON da.donor_id = d.id
-        WHERE da.email = ?
-    `;
+    const accountSnap = await db.collection('donor_accounts').where('email', '==', email).limit(1).get();
+    if (accountSnap.empty) throw new AppError('Invalid credentials', 401);
 
-    const [results] = await db.query(query, [email]);
-    if (results.length === 0) throw new AppError('Invalid credentials', 401);
+    const accountDoc = accountSnap.docs[0];
+    const account = { id: accountDoc.id, ...accountDoc.data() };
 
-    const account = results[0];
     const validPassword = await bcrypt.compare(password, account.password_hash);
     if (!validPassword) throw new AppError('Invalid credentials', 401);
 
+    const donorDoc = await db.collection('donors').doc(account.donor_id).get();
+    const donor = donorDoc.data();
+
     const token = jwt.sign(
-        { 
-            id: account.id,
-            donor_id: account.donor_id,
-            email: account.email,
-            type: 'donor'
-        },
+        { id: account.id, donor_id: account.donor_id, email: account.email, type: 'donor' },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRY }
     );
 
-    db.query('UPDATE donor_accounts SET last_login = NOW() WHERE id = ?', [account.id]).catch(() => {});
+    db.collection('donor_accounts').doc(account.id).update({ last_login: new Date() }).catch(() => {});
 
     logger.info(`Donor login: ${email}`);
     res.json({
         success: true,
         message: 'Login successful',
         token,
-        donor: {
-            id: account.donor_id,
-            name: account.fullname,
-            blood_group: account.blood_group
-        }
+        donor: { id: account.donor_id, name: donor.fullname, blood_group: donor.blood_group }
     });
 }));
 
 // Get Donor Profile
 router.get('/profile', authenticateDonor, asyncHandler(async (req, res) => {
-    const query = `
-        SELECT d.*, da.email as account_email, da.last_login
-        FROM donors d
-        JOIN donor_accounts da ON d.id = da.donor_id
-        WHERE d.id = ?
-    `;
+    const donorDoc = await db.collection('donors').doc(req.user.donor_id).get();
+    if (!donorDoc.exists) throw new AppError('Profile not found', 404);
 
-    const [results] = await db.query(query, [req.user.donor_id]);
-    if (results.length === 0) throw new AppError('Profile not found', 404);
+    const accountSnap = await db.collection('donor_accounts')
+        .where('donor_id', '==', req.user.donor_id).limit(1).get();
+
+    const donorData = donorDoc.data();
+    const accountData = accountSnap.empty ? {} : accountSnap.docs[0].data();
 
     res.json({
         success: true,
-        data: results[0]
+        data: {
+            id: donorDoc.id,
+            ...donorData,
+            account_email: accountData.email,
+            last_login: accountData.last_login
+        }
     });
 }));
 
@@ -137,43 +134,34 @@ router.put('/profile', authenticateDonor, validate([
     body('availability').optional().isBoolean()
 ]), asyncHandler(async (req, res) => {
     const { fullname, age, gender, phone, address, availability } = req.body;
-    
-    const updates = [];
-    const values = [];
 
-    if (fullname) { updates.push('fullname = ?'); values.push(fullname); }
-    if (age) { updates.push('age = ?'); values.push(age); }
-    if (gender) { updates.push('gender = ?'); values.push(gender); }
-    if (phone) { updates.push('phone = ?'); values.push(phone); }
-    if (address) { updates.push('address = ?'); values.push(address); }
-    if (availability !== undefined) { updates.push('availability = ?'); values.push(availability); }
+    const updates = {};
+    if (fullname !== undefined) updates.fullname = fullname;
+    if (age !== undefined) updates.age = parseInt(age);
+    if (gender !== undefined) updates.gender = gender;
+    if (phone !== undefined) updates.phone = phone;
+    if (address !== undefined) updates.address = address;
+    if (availability !== undefined) updates.availability = availability;
 
-    if (updates.length === 0) {
-        throw new AppError('No fields to update', 400);
-    }
+    if (Object.keys(updates).length === 0) throw new AppError('No fields to update', 400);
 
-    values.push(req.user.donor_id);
-    const query = `UPDATE donors SET ${updates.join(', ')} WHERE id = ?`;
-
-    await db.query(query, values);
+    updates.updated_at = new Date();
+    await db.collection('donors').doc(req.user.donor_id).update(updates);
 
     logger.info(`Donor profile updated: ID ${req.user.donor_id}`);
-    res.json({
-        success: true,
-        message: 'Profile updated successfully'
-    });
+    res.json({ success: true, message: 'Profile updated successfully' });
 }));
 
 // Get Donation History
 router.get('/donations', authenticateDonor, asyncHandler(async (req, res) => {
-    const [results] = await db.query(
-        'SELECT * FROM donations WHERE donor_id = ? ORDER BY donation_date DESC',
-        [req.user.donor_id]
-    );
+    const snap = await db.collection('donations')
+        .where('donor_id', '==', req.user.donor_id)
+        .orderBy('donation_date', 'desc')
+        .get();
 
     res.json({
         success: true,
-        data: results
+        data: snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     });
 }));
 
@@ -187,7 +175,10 @@ router.post('/profile/picture', authenticateDonor, (req, res, next) => {
     if (!req.file) throw new AppError('No image file provided', 400);
 
     const profilePicturePath = req.file.path;
-    await db.query('UPDATE donors SET profile_picture = ? WHERE id = ?', [profilePicturePath, req.user.donor_id]);
+    await db.collection('donors').doc(req.user.donor_id).update({
+        profile_picture: profilePicturePath,
+        updated_at: new Date()
+    });
 
     logger.info(`Profile picture updated: donor ID ${req.user.donor_id}`);
     res.json({
@@ -200,10 +191,11 @@ router.post('/profile/picture', authenticateDonor, (req, res, next) => {
 // Get Eligibility Status
 router.get('/eligibility', authenticateDonor, asyncHandler(async (req, res) => {
     const { isDonorEligible, getDaysUntilEligible } = require('../utils/bloodCompatibility');
-    
-    const [results] = await db.query('SELECT last_donation_date FROM donors WHERE id = ?', [req.user.donor_id]);
 
-    const { last_donation_date } = results[0];
+    const doc = await db.collection('donors').doc(req.user.donor_id).get();
+    if (!doc.exists) throw new AppError('Donor not found', 404);
+
+    const { last_donation_date } = doc.data();
     const eligible = isDonorEligible(last_donation_date);
     const daysUntil = getDaysUntilEligible(last_donation_date);
 
@@ -213,8 +205,8 @@ router.get('/eligibility', authenticateDonor, asyncHandler(async (req, res) => {
             eligible,
             last_donation_date,
             days_until_eligible: daysUntil,
-            next_donation_date: last_donation_date ? 
-                new Date(new Date(last_donation_date).getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : 
+            next_donation_date: last_donation_date ?
+                new Date(new Date(last_donation_date).getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] :
                 null
         }
     });

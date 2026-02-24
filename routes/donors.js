@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const db = require('../config/firebase');
 const logger = require('../utils/logger');
 const { asyncHandler, AppError } = require('../middleware/errorHandler');
 const { validate, validationRules } = require('../middleware/validator');
@@ -11,13 +11,10 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Auth Middleware
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-
     if (!token) return next(new AppError('Authentication required', 401));
-
     try {
         req.user = jwt.verify(token, JWT_SECRET);
         next();
@@ -35,64 +32,41 @@ router.get('/', validate(validationRules.pagination), asyncHandler(async (req, r
     const availability = req.query.availability;
     const location = req.query.location;
 
-    let query = 'SELECT * FROM donors WHERE 1=1';
-    let countQuery = 'SELECT COUNT(*) as total FROM donors WHERE 1=1';
-    const params = [];
-    const countParams = [];
+    let ref = db.collection('donors');
+    if (bloodGroup) ref = ref.where('blood_group', '==', bloodGroup);
+    if (availability !== undefined) ref = ref.where('availability', '==', parseInt(availability));
 
-    if (bloodGroup) {
-        query += ' AND blood_group = ?';
-        countQuery += ' AND blood_group = ?';
-        params.push(bloodGroup);
-        countParams.push(bloodGroup);
-    }
+    const countSnap = await ref.count().get();
+    const total = countSnap.data().count;
 
-    if (availability !== undefined) {
-        query += ' AND availability = ?';
-        countQuery += ' AND availability = ?';
-        params.push(availability);
-        countParams.push(availability);
-    }
+    const snap = await ref.orderBy('created_at', 'desc').limit(limit).offset(offset).get();
+    let results = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
+    // Client-side filter for location (Firestore doesn't support LIKE)
     if (location) {
-        query += ' AND address LIKE ?';
-        countQuery += ' AND address LIKE ?';
-        params.push(`%${location}%`);
-        countParams.push(`%${location}%`);
+        results = results.filter(d => d.address && d.address.toLowerCase().includes(location.toLowerCase()));
     }
-
-    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-    params.push(limit, offset);
-
-    const [countResults] = await db.query(countQuery, countParams);
-    const total = countResults[0].total;
-    const [results] = await db.query(query, params);
 
     res.json({
         success: true,
         data: results,
-        pagination: {
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit)
-        }
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
     });
 }));
 
 // Get donor by ID
 router.get('/:id', validate(validationRules.idParam), asyncHandler(async (req, res) => {
-    const [results] = await db.query('SELECT * FROM donors WHERE id = ?', [req.params.id]);
-    if (results.length === 0) throw new AppError('Donor not found', 404);
-    res.json({ success: true, data: results[0] });
+    const doc = await db.collection('donors').doc(req.params.id).get();
+    if (!doc.exists) throw new AppError('Donor not found', 404);
+    res.json({ success: true, data: { id: doc.id, ...doc.data() } });
 }));
 
 // Get donor eligibility
 router.get('/:id/eligibility', validate(validationRules.idParam), asyncHandler(async (req, res) => {
-    const [results] = await db.query('SELECT last_donation_date FROM donors WHERE id = ?', [req.params.id]);
-    if (results.length === 0) throw new AppError('Donor not found', 404);
+    const doc = await db.collection('donors').doc(req.params.id).get();
+    if (!doc.exists) throw new AppError('Donor not found', 404);
 
-    const { last_donation_date } = results[0];
+    const { last_donation_date } = doc.data();
     const eligible = isDonorEligible(last_donation_date);
     const daysUntilEligible = getDaysUntilEligible(last_donation_date);
 
@@ -111,88 +85,92 @@ router.get('/:id/eligibility', validate(validationRules.idParam), asyncHandler(a
 router.get('/compatible/:bloodGroup', asyncHandler(async (req, res) => {
     const { bloodGroup } = req.params;
     const compatibleGroups = getCompatibleBloodGroups(bloodGroup);
+    if (compatibleGroups.length === 0) throw new AppError('Invalid blood group', 400);
 
-    if (compatibleGroups.length === 0) {
-        throw new AppError('Invalid blood group', 400);
-    }
-
-    const placeholders = compatibleGroups.map(() => '?').join(',');
-    const query = `SELECT * FROM donors WHERE blood_group IN (${placeholders}) AND availability = 1 ORDER BY created_at DESC`;
-
-    const [results] = await db.query(query, compatibleGroups);
+    const snap = await db.collection('donors')
+        .where('blood_group', 'in', compatibleGroups)
+        .where('availability', '==', 1)
+        .orderBy('created_at', 'desc')
+        .get();
 
     res.json({
         success: true,
         blood_group: bloodGroup,
         compatible_groups: compatibleGroups,
-        data: results
+        data: snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
     });
 }));
 
 // Register new donor
 router.post('/register', registerLimiter, validate(validationRules.donorRegister), asyncHandler(async (req, res) => {
     const { fullname, age, gender, blood_group, phone, email, address, last_donation_date, availability } = req.body;
-    
-    const query = 'INSERT INTO donors (fullname, age, gender, blood_group, phone, email, address, last_donation_date, availability) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    const isAvailable = availability !== undefined ? availability : 1;
 
-    try {
-        const [result] = await db.query(query, [fullname, age, gender, blood_group, phone, email, address, last_donation_date || null, isAvailable]);
+    // Check duplicate email
+    const existing = await db.collection('donors').where('email', '==', email).limit(1).get();
+    if (!existing.empty) throw new AppError('Email already registered', 400);
 
-        logger.info(`New donor registered: ${email}`);
-        notificationService.sendWelcomeEmail(email, fullname).catch(e => logger.error('Welcome email failed:', e));
+    const ref = await db.collection('donors').add({
+        fullname,
+        age: parseInt(age),
+        gender,
+        blood_group,
+        phone,
+        email,
+        address,
+        last_donation_date: last_donation_date || null,
+        availability: availability !== undefined ? availability : 1,
+        profile_picture: null,
+        created_at: new Date()
+    });
 
-        res.json({
-            success: true,
-            message: 'Donor registered successfully',
-            id: result.insertId
-        });
-    } catch (err) {
-        if (err.code === 'ER_DUP_ENTRY') throw new AppError('Email already registered', 400);
-        throw new AppError('Error registering donor', 500);
-    }
+    logger.info(`New donor registered: ${email}`);
+    notificationService.sendWelcomeEmail(email, fullname).catch(e => logger.error('Welcome email failed:', e));
+
+    res.json({ success: true, message: 'Donor registered successfully', id: ref.id });
 }));
 
 // Update donor
 router.put('/:id', authenticateToken, validate(validationRules.donorUpdate), asyncHandler(async (req, res) => {
     const { fullname, age, gender, blood_group, phone, email, address, last_donation_date, availability } = req.body;
-    
-    const query = 'UPDATE donors SET fullname=?, age=?, gender=?, blood_group=?, phone=?, email=?, address=?, last_donation_date=?, availability=? WHERE id=?';
-    
-    try {
-        const [result] = await db.query(query, [fullname, age, gender, blood_group, phone, email, address, last_donation_date || null, availability, req.params.id]);
+    const ref = db.collection('donors').doc(req.params.id);
+    const doc = await ref.get();
+    if (!doc.exists) throw new AppError('Donor not found', 404);
 
-        if (result.affectedRows === 0) throw new AppError('Donor not found', 404);
-
-        logger.info(`Donor updated: ID ${req.params.id}`);
-        res.json({ success: true, message: 'Donor updated successfully' });
-    } catch (err) {
-        if (err.isOperational) throw err;
-        if (err.code === 'ER_DUP_ENTRY') throw new AppError('Email already exists', 400);
-        throw new AppError('Database error', 500);
+    // Check duplicate email (exclude self)
+    if (email && email !== doc.data().email) {
+        const existing = await db.collection('donors').where('email', '==', email).limit(1).get();
+        if (!existing.empty) throw new AppError('Email already exists', 400);
     }
+
+    await ref.update({ fullname, age: parseInt(age), gender, blood_group, phone, email, address, last_donation_date: last_donation_date || null, availability, updated_at: new Date() });
+
+    logger.info(`Donor updated: ID ${req.params.id}`);
+    res.json({ success: true, message: 'Donor updated successfully' });
 }));
 
 // Update donor availability
 router.patch('/:id/availability', authenticateToken, validate(validationRules.idParam), asyncHandler(async (req, res) => {
     const { availability } = req.body;
-    
     if (typeof availability !== 'boolean' && typeof availability !== 'number') {
         throw new AppError('Availability must be boolean or number (0/1)', 400);
     }
 
-    const [result] = await db.query('UPDATE donors SET availability=? WHERE id=?', [availability, req.params.id]);
-    if (result.affectedRows === 0) throw new AppError('Donor not found', 404);
+    const ref = db.collection('donors').doc(req.params.id);
+    const doc = await ref.get();
+    if (!doc.exists) throw new AppError('Donor not found', 404);
 
+    await ref.update({ availability, updated_at: new Date() });
     logger.info(`Donor availability updated: ID ${req.params.id}`);
     res.json({ success: true, message: 'Availability updated' });
 }));
 
 // Delete donor
 router.delete('/:id', authenticateToken, validate(validationRules.idParam), asyncHandler(async (req, res) => {
-    const [result] = await db.query('DELETE FROM donors WHERE id=?', [req.params.id]);
-    if (result.affectedRows === 0) throw new AppError('Donor not found', 404);
+    const ref = db.collection('donors').doc(req.params.id);
+    const doc = await ref.get();
+    if (!doc.exists) throw new AppError('Donor not found', 404);
 
+    await ref.delete();
     logger.info(`Donor deleted: ID ${req.params.id}`);
     res.json({ success: true, message: 'Donor deleted successfully' });
 }));

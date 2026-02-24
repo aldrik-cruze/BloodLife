@@ -55,7 +55,7 @@ const validationRules = {
     ],
 
     donorUpdate: [
-        param('id').isInt().withMessage('Invalid donor ID'),
+        param('id').notEmpty().isString().withMessage('Invalid donor ID'),
         body('fullname').optional().trim().isLength({ min: 2, max: 100 }).withMessage('Full name must be 2-100 characters'),
         body('age').optional().isInt({ min: 18, max: 65 }).withMessage('Age must be between 18 and 65'),
         body('gender').optional().isIn(['Male', 'Female', 'Other']).withMessage('Gender must be Male, Female, or Other'),
@@ -78,7 +78,7 @@ const validationRules = {
     ],
 
     requestStatusUpdate: [
-        param('id').isInt().withMessage('Invalid request ID'),
+        param('id').notEmpty().isString().withMessage('Invalid request ID'),
         body('status').isIn(['Pending', 'Approved', 'Rejected', 'Fulfilled']).withMessage('Invalid status')
     ],
 
@@ -88,7 +88,7 @@ const validationRules = {
     ],
 
     idParam: [
-        param('id').isInt().withMessage('Invalid ID')
+        param('id').notEmpty().isString().withMessage('Invalid ID')
     ]
 };
 

@@ -7,14 +7,8 @@ const logger = require('./utils/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
-// Validate required environment variables
-// Railway provides DATABASE_URL, but we can also use individual DB variables
-const hasIndividualDbVars = process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME;
-const hasDatabaseUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
-const hasRailwayVars = process.env.MYSQLHOST && process.env.MYSQLUSER;
-
-if (!hasIndividualDbVars && !hasDatabaseUrl && !hasRailwayVars) {
-    logger.error('Missing database configuration. Need either DATABASE_URL or DB_HOST/DB_USER/DB_NAME');
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+    logger.error('Missing required environment variable: FIREBASE_SERVICE_ACCOUNT');
     process.exit(1);
 }
 
@@ -61,7 +55,7 @@ app.use('/api/', apiLimiter);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize database
-require('./config/database');
+require('./config/firebase');
 
 // Swagger Documentation
 const { swaggerUi, swaggerSpec } = require('./config/swagger');
