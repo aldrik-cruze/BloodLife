@@ -1,35 +1,34 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const logger = require('./logger');
 
 class NotificationService {
     constructor() {
-        this.transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: false,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASSWORD
-            }
-        });
+        this.resend = process.env.RESEND_API_KEY
+            ? new Resend(process.env.RESEND_API_KEY)
+            : null;
     }
 
     async sendEmail(to, subject, html) {
         try {
-            if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-                logger.warn('Email credentials not configured, skipping email send');
+            if (!this.resend) {
+                logger.warn('RESEND_API_KEY not configured, skipping email send');
                 return { success: false, message: 'Email not configured' };
             }
 
-            const info = await this.transporter.sendMail({
-                from: process.env.EMAIL_FROM || '"BloodLife" <noreply@bloodlife.com>',
+            const { data, error } = await this.resend.emails.send({
+                from: process.env.EMAIL_FROM || 'BloodLife <onboarding@resend.dev>',
                 to,
                 subject,
                 html
             });
 
-            logger.info(`Email sent: ${info.messageId}`);
-            return { success: true, messageId: info.messageId };
+            if (error) {
+                logger.error(`Email send failed: ${error.message}`);
+                return { success: false, error: error.message };
+            }
+
+            logger.info(`Email sent: ${data.id}`);
+            return { success: true, messageId: data.id };
         } catch (error) {
             logger.error(`Email send failed: ${error.message}`);
             return { success: false, error: error.message };
