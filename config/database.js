@@ -99,12 +99,20 @@ function initDatabase() {
                 initDbInfo.query(checkTable, (err, results) => {
                     if (!err && results.length === 0) {
                         logger.info('Tables missing. Running database.sql...');
-                        const sqlPath = path.join(__dirname, '../database.sql');
+                        const sqlPath = path.join(__dirname, '../database/database.sql');
                         fs.readFile(sqlPath, 'utf8', (err, data) => {
                             if (err) {
                                 logger.error('Error reading database.sql:', err);
                             } else {
-                                initDbInfo.query(data, async (err) => {
+                                // Strip CREATE DATABASE and USE statements — we're already connected to the right DB
+                                const cleanedSql = data
+                                    .split('\n')
+                                    .filter(line => {
+                                        const trimmed = line.trim().toUpperCase();
+                                        return !trimmed.startsWith('CREATE DATABASE') && !trimmed.startsWith('USE ');
+                                    })
+                                    .join('\n');
+                                initDbInfo.query(cleanedSql, async (err) => {
                                     if (err) logger.error('Error executing SQL script:', err);
                                     else {
                                         logger.info('Database initialized from SQL script.');
