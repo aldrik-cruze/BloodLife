@@ -16,61 +16,45 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) throw new AppError('Authentication required', 401);
+    if (!token) return next(new AppError('Authentication required', 401));
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) throw new AppError('Invalid or expired token', 403);
-        req.user = user;
+    try {
+        req.user = jwt.verify(token, JWT_SECRET);
         next();
-    });
+    } catch (err) {
+        next(new AppError('Invalid or expired token', 403));
+    }
 }
 
 // Admin Login
 router.post('/login', authLimiter, validate(validationRules.adminLogin), asyncHandler(async (req, res) => {
     const { username, password } = req.body;
     
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM admins WHERE username = ?';
-        db.query(query, [username], async (err, results) => {
-            try {
-                if (err) {
-                    logger.error('Database error during login:', err);
-                    return reject(new AppError('Database error', 500));
-                }
+    const [results] = await db.query('SELECT * FROM admins WHERE username = ?', [username]);
 
-                if (results.length === 0) {
-                    return reject(new AppError('Invalid credentials', 401));
-                }
+    if (results.length === 0) throw new AppError('Invalid credentials', 401);
 
-                const admin = results[0];
-                const validPassword = await bcrypt.compare(password, admin.password_hash);
+    const admin = results[0];
+    const validPassword = await bcrypt.compare(password, admin.password_hash);
 
-                if (!validPassword) {
-                    return reject(new AppError('Invalid credentials', 401));
-                }
+    if (!validPassword) throw new AppError('Invalid credentials', 401);
 
-                const token = jwt.sign(
-                    { username: admin.username, id: admin.id, role: admin.role, type: 'admin' },
-                    JWT_SECRET,
-                    { expiresIn: JWT_EXPIRY }
-                );
+    const token = jwt.sign(
+        { username: admin.username, id: admin.id, role: admin.role, type: 'admin' },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRY }
+    );
 
-                logger.info(`Admin login successful: ${username}`);
-                res.json({
-                    success: true,
-                    message: 'Login successful',
-                    token,
-                    user: {
-                        id: admin.id,
-                        username: admin.username,
-                        role: admin.role
-                    }
-                });
-                resolve();
-            } catch (error) {
-                reject(error);
-            }
-        });
+    logger.info(`Admin login successful: ${username}`);
+    res.json({
+        success: true,
+        message: 'Login successful',
+        token,
+        user: {
+            id: admin.id,
+            username: admin.username,
+            role: admin.role
+        }
     });
 }));
 
@@ -90,15 +74,8 @@ router.get('/analytics', authenticateToken, asyncHandler(async (req, res) => {
     const analytics = {};
 
     for (const [key, query] of Object.entries(queries)) {
-        await new Promise((resolve, reject) => {
-            db.query(query, (err, results) => {
-                if (err) reject(err);
-                else {
-                    analytics[key] = Array.isArray(results) ? results : [results];
-                    resolve();
-                }
-            });
-        });
+        const [results] = await db.query(query);
+        analytics[key] = Array.isArray(results) ? results : [results];
     }
 
     res.json({
@@ -113,11 +90,8 @@ router.get('/users', authenticateToken, asyncHandler(async (req, res) => {
         throw new AppError('Access denied. Super admin only.', 403);
     }
 
-    const query = 'SELECT id, username, email, role, created_at FROM admins';
-    db.query(query, (err, results) => {
-        if (err) throw new AppError('Database error', 500);
-        res.json({ success: true, data: results });
-    });
+    const [results] = await db.query('SELECT id, username, email, role, created_at FROM admins');
+    res.json({ success: true, data: results });
 }));
 
 // Create new admin (super_admin only)
@@ -133,15 +107,12 @@ router.post('/users', authenticateToken, asyncHandler(async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const query = 'INSERT INTO admins (username, password_hash, email, role) VALUES (?, ?, ?, ?)';
-    
-    db.query(query, [username, hashedPassword, email || null, role || 'admin'], (err, result) => {
-        if (err) {
-            if (err.code === 'ER_DUP_ENTRY') {
-                throw new AppError('Username already exists', 400);
-            }
-            throw new AppError('Database error', 500);
-        }
+
+    try {
+        const [result] = await db.query(
+            'INSERT INTO admins (username, password_hash, email, role) VALUES (?, ?, ?, ?)',
+            [username, hashedPassword, email || null, role || 'admin']
+        );
 
         logger.info(`New admin created: ${username} by ${req.user.username}`);
         res.json({
@@ -149,7 +120,10 @@ router.post('/users', authenticateToken, asyncHandler(async (req, res) => {
             message: 'Admin created successfully',
             id: result.insertId
         });
-    });
+    } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') throw new AppError('Username already exists', 400);
+        throw new AppError('Database error', 500);
+    }
 }));
 
 module.exports = router;

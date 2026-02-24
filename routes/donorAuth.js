@@ -19,14 +19,16 @@ function authenticateDonor(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) throw new AppError('Authentication required', 401);
+    if (!token) return next(new AppError('Authentication required', 401));
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) throw new AppError('Invalid or expired token', 403);
-        if (user.type !== 'donor') throw new AppError('Donor access only', 403);
+    try {
+        const user = jwt.verify(token, JWT_SECRET);
+        if (user.type !== 'donor') return next(new AppError('Donor access only', 403));
         req.user = user;
         next();
-    });
+    } catch (err) {
+        next(new AppError('Invalid or expired token', 403));
+    }
 }
 
 // Donor Registration (create account)
@@ -37,38 +39,26 @@ router.post('/register', registerLimiter, validate([
 ]), asyncHandler(async (req, res) => {
     const { donor_id, email, password } = req.body;
 
-    // Check if donor exists
-    const donorQuery = 'SELECT id, email, fullname FROM donors WHERE id = ? AND email = ?';
-    db.query(donorQuery, [donor_id, email], async (err, donors) => {
-        if (err) throw new AppError('Database error', 500);
-        if (donors.length === 0) throw new AppError('Donor not found. Please register as donor first.', 404);
+    const [donors] = await db.query('SELECT id, email, fullname FROM donors WHERE id = ? AND email = ?', [donor_id, email]);
+    if (donors.length === 0) throw new AppError('Donor not found. Please register as donor first.', 404);
 
-        // Check if account already exists
-        const accountQuery = 'SELECT id FROM donor_accounts WHERE donor_id = ? OR email = ?';
-        db.query(accountQuery, [donor_id, email], async (err, accounts) => {
-            if (err) throw new AppError('Database error', 500);
-            if (accounts.length > 0) throw new AppError('Account already exists', 400);
+    const [accounts] = await db.query('SELECT id FROM donor_accounts WHERE donor_id = ? OR email = ?', [donor_id, email]);
+    if (accounts.length > 0) throw new AppError('Account already exists', 400);
 
-            // Create account
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const insertQuery = 'INSERT INTO donor_accounts (donor_id, email, password_hash) VALUES (?, ?, ?)';
-            
-            db.query(insertQuery, [donor_id, email, hashedPassword], (err, result) => {
-                if (err) throw new AppError('Error creating account', 500);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const [result] = await db.query(
+        'INSERT INTO donor_accounts (donor_id, email, password_hash) VALUES (?, ?, ?)',
+        [donor_id, email, hashedPassword]
+    );
 
-                logger.info(`Donor account created: ${email}`);
+    logger.info(`Donor account created: ${email}`);
+    notificationService.sendWelcomeEmail(email, donors[0].fullname || 'Donor')
+        .catch(e => logger.warn('Welcome email failed: ' + e.message));
 
-                // Send welcome email (non-blocking)
-                notificationService.sendWelcomeEmail(email, donors[0].fullname || 'Donor')
-                    .catch(e => logger.warn('Welcome email failed: ' + e.message));
-
-                res.json({
-                    success: true,
-                    message: 'Account created successfully. Please login.',
-                    id: result.insertId
-                });
-            });
-        });
+    res.json({
+        success: true,
+        message: 'Account created successfully. Please login.',
+        id: result.insertId
     });
 }));
 
@@ -86,40 +76,36 @@ router.post('/login', authLimiter, validate([
         WHERE da.email = ?
     `;
 
-    db.query(query, [email], async (err, results) => {
-        if (err) throw new AppError('Database error', 500);
-        if (results.length === 0) throw new AppError('Invalid credentials', 401);
+    const [results] = await db.query(query, [email]);
+    if (results.length === 0) throw new AppError('Invalid credentials', 401);
 
-        const account = results[0];
-        const validPassword = await bcrypt.compare(password, account.password_hash);
+    const account = results[0];
+    const validPassword = await bcrypt.compare(password, account.password_hash);
+    if (!validPassword) throw new AppError('Invalid credentials', 401);
 
-        if (!validPassword) throw new AppError('Invalid credentials', 401);
+    const token = jwt.sign(
+        { 
+            id: account.id,
+            donor_id: account.donor_id,
+            email: account.email,
+            type: 'donor'
+        },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRY }
+    );
 
-        const token = jwt.sign(
-            { 
-                id: account.id,
-                donor_id: account.donor_id,
-                email: account.email,
-                type: 'donor'
-            },
-            JWT_SECRET,
-            { expiresIn: JWT_EXPIRY }
-        );
+    db.query('UPDATE donor_accounts SET last_login = NOW() WHERE id = ?', [account.id]).catch(() => {});
 
-        // Update last login
-        db.query('UPDATE donor_accounts SET last_login = NOW() WHERE id = ?', [account.id]);
-
-        logger.info(`Donor login: ${email}`);
-        res.json({
-            success: true,
-            message: 'Login successful',
-            token,
-            donor: {
-                id: account.donor_id,
-                name: account.fullname,
-                blood_group: account.blood_group
-            }
-        });
+    logger.info(`Donor login: ${email}`);
+    res.json({
+        success: true,
+        message: 'Login successful',
+        token,
+        donor: {
+            id: account.donor_id,
+            name: account.fullname,
+            blood_group: account.blood_group
+        }
     });
 }));
 
@@ -132,14 +118,12 @@ router.get('/profile', authenticateDonor, asyncHandler(async (req, res) => {
         WHERE d.id = ?
     `;
 
-    db.query(query, [req.user.donor_id], (err, results) => {
-        if (err) throw new AppError('Database error', 500);
-        if (results.length === 0) throw new AppError('Profile not found', 404);
+    const [results] = await db.query(query, [req.user.donor_id]);
+    if (results.length === 0) throw new AppError('Profile not found', 404);
 
-        res.json({
-            success: true,
-            data: results[0]
-        });
+    res.json({
+        success: true,
+        data: results[0]
     });
 }));
 
@@ -171,32 +155,25 @@ router.put('/profile', authenticateDonor, validate([
     values.push(req.user.donor_id);
     const query = `UPDATE donors SET ${updates.join(', ')} WHERE id = ?`;
 
-    db.query(query, values, (err, result) => {
-        if (err) throw new AppError('Database error', 500);
+    await db.query(query, values);
 
-        logger.info(`Donor profile updated: ID ${req.user.donor_id}`);
-        res.json({
-            success: true,
-            message: 'Profile updated successfully'
-        });
+    logger.info(`Donor profile updated: ID ${req.user.donor_id}`);
+    res.json({
+        success: true,
+        message: 'Profile updated successfully'
     });
 }));
 
 // Get Donation History
 router.get('/donations', authenticateDonor, asyncHandler(async (req, res) => {
-    const query = `
-        SELECT * FROM donations 
-        WHERE donor_id = ? 
-        ORDER BY donation_date DESC
-    `;
+    const [results] = await db.query(
+        'SELECT * FROM donations WHERE donor_id = ? ORDER BY donation_date DESC',
+        [req.user.donor_id]
+    );
 
-    db.query(query, [req.user.donor_id], (err, results) => {
-        if (err) throw new AppError('Database error', 500);
-
-        res.json({
-            success: true,
-            data: results
-        });
+    res.json({
+        success: true,
+        data: results
     });
 }));
 
@@ -209,18 +186,14 @@ router.post('/profile/picture', authenticateDonor, (req, res, next) => {
 }, asyncHandler(async (req, res) => {
     if (!req.file) throw new AppError('No image file provided', 400);
 
-    const profilePicturePath = req.file.path; // Cloudinary URL
-    const query = 'UPDATE donors SET profile_picture = ? WHERE id = ?';
+    const profilePicturePath = req.file.path;
+    await db.query('UPDATE donors SET profile_picture = ? WHERE id = ?', [profilePicturePath, req.user.donor_id]);
 
-    db.query(query, [profilePicturePath, req.user.donor_id], (err, result) => {
-        if (err) throw new AppError('Database error', 500);
-
-        logger.info(`Profile picture updated: donor ID ${req.user.donor_id}`);
-        res.json({
-            success: true,
-            message: 'Profile picture updated successfully',
-            profile_picture: profilePicturePath
-        });
+    logger.info(`Profile picture updated: donor ID ${req.user.donor_id}`);
+    res.json({
+        success: true,
+        message: 'Profile picture updated successfully',
+        profile_picture: profilePicturePath
     });
 }));
 
@@ -228,25 +201,22 @@ router.post('/profile/picture', authenticateDonor, (req, res, next) => {
 router.get('/eligibility', authenticateDonor, asyncHandler(async (req, res) => {
     const { isDonorEligible, getDaysUntilEligible } = require('../utils/bloodCompatibility');
     
-    const query = 'SELECT last_donation_date FROM donors WHERE id = ?';
-    db.query(query, [req.user.donor_id], (err, results) => {
-        if (err) throw new AppError('Database error', 500);
+    const [results] = await db.query('SELECT last_donation_date FROM donors WHERE id = ?', [req.user.donor_id]);
 
-        const { last_donation_date } = results[0];
-        const eligible = isDonorEligible(last_donation_date);
-        const daysUntil = getDaysUntilEligible(last_donation_date);
+    const { last_donation_date } = results[0];
+    const eligible = isDonorEligible(last_donation_date);
+    const daysUntil = getDaysUntilEligible(last_donation_date);
 
-        res.json({
-            success: true,
-            data: {
-                eligible,
-                last_donation_date,
-                days_until_eligible: daysUntil,
-                next_donation_date: last_donation_date ? 
-                    new Date(new Date(last_donation_date).getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : 
-                    null
-            }
-        });
+    res.json({
+        success: true,
+        data: {
+            eligible,
+            last_donation_date,
+            days_until_eligible: daysUntil,
+            next_donation_date: last_donation_date ? 
+                new Date(new Date(last_donation_date).getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : 
+                null
+        }
     });
 }));
 

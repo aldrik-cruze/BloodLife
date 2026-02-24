@@ -16,13 +16,14 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) throw new AppError('Authentication required', 401);
+    if (!token) return next(new AppError('Authentication required', 401));
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) throw new AppError('Invalid or expired token', 403);
-        req.user = user;
+    try {
+        req.user = jwt.verify(token, JWT_SECRET);
         next();
-    });
+    } catch (err) {
+        next(new AppError('Invalid or expired token', 403));
+    }
 }
 
 // Get all donors with pagination
@@ -63,58 +64,46 @@ router.get('/', validate(validationRules.pagination), asyncHandler(async (req, r
     query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
 
-    db.query(countQuery, countParams, (err, countResults) => {
-        if (err) throw new AppError('Database error', 500);
+    const [countResults] = await db.query(countQuery, countParams);
+    const total = countResults[0].total;
+    const [results] = await db.query(query, params);
 
-        const total = countResults[0].total;
-
-        db.query(query, params, (err, results) => {
-            if (err) throw new AppError('Database error', 500);
-
-            res.json({
-                success: true,
-                data: results,
-                pagination: {
-                    page,
-                    limit,
-                    total,
-                    totalPages: Math.ceil(total / limit)
-                }
-            });
-        });
+    res.json({
+        success: true,
+        data: results,
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit)
+        }
     });
 }));
 
 // Get donor by ID
 router.get('/:id', validate(validationRules.idParam), asyncHandler(async (req, res) => {
-    const query = 'SELECT * FROM donors WHERE id = ?';
-    db.query(query, [req.params.id], (err, results) => {
-        if (err) throw new AppError('Database error', 500);
-        if (results.length === 0) throw new AppError('Donor not found', 404);
-        res.json({ success: true, data: results[0] });
-    });
+    const [results] = await db.query('SELECT * FROM donors WHERE id = ?', [req.params.id]);
+    if (results.length === 0) throw new AppError('Donor not found', 404);
+    res.json({ success: true, data: results[0] });
 }));
 
 // Get donor eligibility
 router.get('/:id/eligibility', validate(validationRules.idParam), asyncHandler(async (req, res) => {
-    const query = 'SELECT last_donation_date FROM donors WHERE id = ?';
-    db.query(query, [req.params.id], (err, results) => {
-        if (err) throw new AppError('Database error', 500);
-        if (results.length === 0) throw new AppError('Donor not found', 404);
+    const [results] = await db.query('SELECT last_donation_date FROM donors WHERE id = ?', [req.params.id]);
+    if (results.length === 0) throw new AppError('Donor not found', 404);
 
-        const { last_donation_date } = results[0];
-        const eligible = isDonorEligible(last_donation_date);
-        const daysUntilEligible = getDaysUntilEligible(last_donation_date);
+    const { last_donation_date } = results[0];
+    const eligible = isDonorEligible(last_donation_date);
+    const daysUntilEligible = getDaysUntilEligible(last_donation_date);
 
-        res.json({
-            success: true,
-            data: {
-                eligible,
-                last_donation_date,
-                days_until_eligible: daysUntilEligible,
-                message: eligible ? 'Eligible to donate' : `Not eligible. Can donate after ${daysUntilEligible} days`
-            }
-        });
+    res.json({
+        success: true,
+        data: {
+            eligible,
+            last_donation_date,
+            days_until_eligible: daysUntilEligible,
+            message: eligible ? 'Eligible to donate' : `Not eligible. Can donate after ${daysUntilEligible} days`
+        }
     });
 }));
 
@@ -130,15 +119,13 @@ router.get('/compatible/:bloodGroup', asyncHandler(async (req, res) => {
     const placeholders = compatibleGroups.map(() => '?').join(',');
     const query = `SELECT * FROM donors WHERE blood_group IN (${placeholders}) AND availability = 1 ORDER BY created_at DESC`;
 
-    db.query(query, compatibleGroups, (err, results) => {
-        if (err) throw new AppError('Database error', 500);
+    const [results] = await db.query(query, compatibleGroups);
 
-        res.json({
-            success: true,
-            blood_group: bloodGroup,
-            compatible_groups: compatibleGroups,
-            data: results
-        });
+    res.json({
+        success: true,
+        blood_group: bloodGroup,
+        compatible_groups: compatibleGroups,
+        data: results
     });
 }));
 
@@ -149,17 +136,10 @@ router.post('/register', registerLimiter, validate(validationRules.donorRegister
     const query = 'INSERT INTO donors (fullname, age, gender, blood_group, phone, email, address, last_donation_date, availability) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
     const isAvailable = availability !== undefined ? availability : 1;
 
-    db.query(query, [fullname, age, gender, blood_group, phone, email, address, last_donation_date || null, isAvailable], async (err, result) => {
-        if (err) {
-            if (err.code === 'ER_DUP_ENTRY') {
-                throw new AppError('Email already registered', 400);
-            }
-            throw new AppError('Error registering donor', 500);
-        }
+    try {
+        const [result] = await db.query(query, [fullname, age, gender, blood_group, phone, email, address, last_donation_date || null, isAvailable]);
 
         logger.info(`New donor registered: ${email}`);
-
-        // Send welcome email (async, don't wait)
         notificationService.sendWelcomeEmail(email, fullname).catch(e => logger.error('Welcome email failed:', e));
 
         res.json({
@@ -167,7 +147,10 @@ router.post('/register', registerLimiter, validate(validationRules.donorRegister
             message: 'Donor registered successfully',
             id: result.insertId
         });
-    });
+    } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') throw new AppError('Email already registered', 400);
+        throw new AppError('Error registering donor', 500);
+    }
 }));
 
 // Update donor
@@ -176,21 +159,18 @@ router.put('/:id', authenticateToken, validate(validationRules.donorUpdate), asy
     
     const query = 'UPDATE donors SET fullname=?, age=?, gender=?, blood_group=?, phone=?, email=?, address=?, last_donation_date=?, availability=? WHERE id=?';
     
-    db.query(query, [fullname, age, gender, blood_group, phone, email, address, last_donation_date || null, availability, req.params.id], (err, result) => {
-        if (err) {
-            if (err.code === 'ER_DUP_ENTRY') {
-                throw new AppError('Email already exists', 400);
-            }
-            throw new AppError('Database error', 500);
-        }
+    try {
+        const [result] = await db.query(query, [fullname, age, gender, blood_group, phone, email, address, last_donation_date || null, availability, req.params.id]);
 
-        if (result.affectedRows === 0) {
-            throw new AppError('Donor not found', 404);
-        }
+        if (result.affectedRows === 0) throw new AppError('Donor not found', 404);
 
         logger.info(`Donor updated: ID ${req.params.id}`);
         res.json({ success: true, message: 'Donor updated successfully' });
-    });
+    } catch (err) {
+        if (err.isOperational) throw err;
+        if (err.code === 'ER_DUP_ENTRY') throw new AppError('Email already exists', 400);
+        throw new AppError('Database error', 500);
+    }
 }));
 
 // Update donor availability
@@ -201,28 +181,20 @@ router.patch('/:id/availability', authenticateToken, validate(validationRules.id
         throw new AppError('Availability must be boolean or number (0/1)', 400);
     }
 
-    const query = 'UPDATE donors SET availability=? WHERE id=?';
-    
-    db.query(query, [availability, req.params.id], (err, result) => {
-        if (err) throw new AppError('Database error', 500);
-        if (result.affectedRows === 0) throw new AppError('Donor not found', 404);
+    const [result] = await db.query('UPDATE donors SET availability=? WHERE id=?', [availability, req.params.id]);
+    if (result.affectedRows === 0) throw new AppError('Donor not found', 404);
 
-        logger.info(`Donor availability updated: ID ${req.params.id}`);
-        res.json({ success: true, message: 'Availability updated' });
-    });
+    logger.info(`Donor availability updated: ID ${req.params.id}`);
+    res.json({ success: true, message: 'Availability updated' });
 }));
 
 // Delete donor
 router.delete('/:id', authenticateToken, validate(validationRules.idParam), asyncHandler(async (req, res) => {
-    const query = 'DELETE FROM donors WHERE id=?';
-    
-    db.query(query, [req.params.id], (err, result) => {
-        if (err) throw new AppError('Database error', 500);
-        if (result.affectedRows === 0) throw new AppError('Donor not found', 404);
+    const [result] = await db.query('DELETE FROM donors WHERE id=?', [req.params.id]);
+    if (result.affectedRows === 0) throw new AppError('Donor not found', 404);
 
-        logger.info(`Donor deleted: ID ${req.params.id}`);
-        res.json({ success: true, message: 'Donor deleted successfully' });
-    });
+    logger.info(`Donor deleted: ID ${req.params.id}`);
+    res.json({ success: true, message: 'Donor deleted successfully' });
 }));
 
 module.exports = router;

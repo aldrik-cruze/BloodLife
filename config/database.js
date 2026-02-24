@@ -240,4 +240,4 @@ async function runMigrations(connection) {
 
 initDatabase();
 
-module.exports = apiDb;
+module.exports = apiDb.promise();
